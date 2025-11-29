@@ -54,12 +54,32 @@ Curve evalBezier( const vector< Vector3f >& P, unsigned steps )
         cerr << "\t>>> " << P[i] << endl;
     }
 
-    cerr << "\t>>> Steps (type steps): " << steps << endl;
-    cerr << "\t>>> Returning empty curve." << endl;
+    cerr << "\t>>> Steps: " << steps << endl;
+
+	Curve result;
+
+    /* we need to calc n,b,t,v i.e. the normal, binormal, tangent and vertex location of <steps> points on the 
+    * defined by the control points P of a piecewise polynomial Bezier curve.
+    * steps:
+    * 1. assume P is on the xy plane (i.e. z is always 0) to get a feel of how to implement this.
+    * 2. per step, calculate the value at that location + tangent and normal (assuming binormal is just (0,0,1) since we assume xy plane).
+    * 3. figure out how to do this for non xy-plane thingies.
+    * */
+
+    for (unsigned i = 0; i < (P.size() + 1) / 4; ++i)
+    {
+        
+        for (unsigned j = 0; j < steps; j++)
+        {
+
+        }
+    }
 
     // Right now this will just return this empty curve.
     return Curve();
 }
+
+
 
 Curve evalBspline( const vector< Vector3f >& P, unsigned steps )
 {

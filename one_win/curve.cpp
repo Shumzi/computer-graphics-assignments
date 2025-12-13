@@ -18,7 +18,47 @@ namespace
 
     
 }
-    
+
+Vector3f qBez(float t, Vector3f p_0, Vector3f  p_1, Vector3f  p_2, Vector3f  p_3)
+{     
+    // remembering that
+    // q(t) = (1 - t) ^ 3P_0 + 3(1 - t) ^ 2 * tP_1 + 3(1 - t)t ^ 2 * P_2 + t ^ 3 * P_3
+    Vector3f p_0_comp = pow(1 - t, 3) * p_0;
+    Vector3f p_1_comp = 3 * pow(1 - t, 2) * t * p_1;
+    Vector3f p_2_comp = 3 * (1 - t) * pow(t, 2) * p_2;
+    Vector3f p_3_comp = pow(t, 3) * p_3;
+    return p_0_comp + p_1_comp + p_2_comp + p_3_comp;
+}
+
+Vector3f qBezFirstDerivative(float t, Vector3f p_0, Vector3f  p_1, Vector3f  p_2, Vector3f  p_3)
+{
+    // remember that
+    // q'(t) = 3*(1-t)^2(P_1-P_0) + 6(1-t)t(P_2-P_1) + 3t^2(P_3-P_2)
+    Vector3f p_01_comp = 3 * pow(1 - t, 2) * (p_1 - p_0);
+    Vector3f p_12_comp = 6 * (1 - t) * t * (p_2 - p_1);
+    Vector3f p_23_comp = 3 * pow(t, 2) * (p_3 - p_2);
+    return p_01_comp + p_12_comp + p_23_comp;
+}
+
+Vector3f qBezSecondDerivative(float t, Vector3f p_0, Vector3f  p_1, Vector3f  p_2, Vector3f  p_3)
+{
+    // q"(t) = 6(1-t)(P_2 - 2P_1 - P_0) + 6t(P_3 - 2P_2 + P_1)
+    Vector3f p_012_comp = 6 * (1 - t) * (p_2 - 2 * p_1 - p_0);
+    Vector3f p_123_comp = 6 * t * (p_3 - 2 * p_2 - p_1);
+    return p_012_comp + p_123_comp;
+}
+
+CurvePoint getPointOn2DBezCurve(float t, Vector3f p_0, Vector3f  p_1, Vector3f  p_2, Vector3f  p_3)
+{
+    CurvePoint cp;
+    cp.V = qBez(t, p_0, p_1, p_2, p_3);
+    // cp.V = Vector3f::cubicInterpolate(P[p], P[p + 1], P[p + 2], P[p + 3], t);
+    // implementing 2.
+    cp.T = qBezFirstDerivative(t, p_0, p_1, p_2, p_3).normalized(); // Tangent  (unit)
+    cp.B = Vector3f(0, 0, 1); // Binormal (unit)
+    cp.N = Vector3f::cross(cp.B, cp.T); // Normal   (unit)
+    return cp;
+}
 
 Curve evalBezier( const vector< Vector3f >& P, unsigned steps )
 {
@@ -64,21 +104,35 @@ Curve evalBezier( const vector< Vector3f >& P, unsigned steps )
     * 1. assume P is on the xy plane (i.e. z is always 0) to get a feel of how to implement this.
     * 2. per step, calculate the value at that location + tangent and normal (assuming binormal is just (0,0,1) since we assume xy plane).
     * 3. figure out how to do this for non xy-plane thingies.
+    * remembering that 
+    * v = q(t) where q(t) = sum(b[1...4](t)*p[1...4])
+    * t = q'(t)
     * */
 
-    for (unsigned i = 0; i < (P.size() + 1) / 4; ++i)
+    for (unsigned i = 0; i < (P.size() - 1) / 3; ++i) // loop over piecewise polynomial group. 
     {
-        
-        for (unsigned j = 0; j < steps; j++)
-        {
 
+        unsigned p = i * 3; // since each bezier piece adds 3 new anchor points (1: 0,1,2,3. 2: 3,4,5,6. etc.)
+        for (unsigned j = 0; j < steps; j++) // calc <steps> points on current piece.
+        {
+            float t = float(j) / float(steps); // relative location that we are on the bez, since t runs from 0 to 1 on a bez.
+            // calcing the curvepoint for the current point in piece #i.
+            // implementing 1. Multiplication and addition for vector3f is already implemented.
+            CurvePoint cp = getPointOn2DBezCurve(t, P[p], P[p + 1], P[p + 2], P[p + 3]);
+            result.push_back(cp);
         }
     }
+    // we need to add another point for the last dot...
+    CurvePoint lastpoint = getPointOn2DBezCurve(1.0f,
+        P[P.size() - 4],
+        P[P.size() - 3],
+        P[P.size() - 2],
+        P[P.size() - 1]);
+    result.push_back(lastpoint);
+    cout << "resulting curve has " << result.size() << " points" << endl;
 
-    // Right now this will just return this empty curve.
-    return Curve();
+    return result;
 }
-
 
 
 Curve evalBspline( const vector< Vector3f >& P, unsigned steps )

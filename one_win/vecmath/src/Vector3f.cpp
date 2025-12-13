@@ -320,3 +320,18 @@ bool operator != ( const Vector3f& v0, const Vector3f& v1 )
 {
     return !( v0 == v1 );
 }
+std::ostream& operator<<(std::ostream& os, const Vector3f& v)
+{
+	// preserve original formatting
+	std::ios::fmtflags flags = os.flags();
+	std::streamsize prec = os.precision();
+
+	os << std::fixed << std::setprecision(4);
+	os << "<" << v.x() << ", " << v.y() << ", " << v.z() << ">";
+
+	// restore formatting
+	os.flags(flags);
+	os.precision(prec);
+
+	return os;
+}

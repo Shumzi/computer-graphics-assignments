@@ -1,5 +1,7 @@
 #include "surf.h"
 #include "extra.h"
+#include <cmath>
+#include <algorithm>
 using namespace std;
 
 namespace
@@ -19,6 +21,84 @@ namespace
     }
 }
 
+CurvePoint rotateCurvePoint(const CurvePoint &c, const  Matrix3f &m)
+{
+    CurvePoint cp;
+    cp.V = m * c.V;
+    cp.T = m * c.T;
+    cp.N = m * c.N;
+    cp.B = m * c.B;
+    return cp;
+}
+
+Curve getRotatedCurve(const Curve &c, const  Matrix3f &rot)
+{
+    Curve rotated(c.size());
+    transform(c.begin(), c.end(), rotated.begin(), 
+        [&rot](CurvePoint c) {return rotateCurvePoint(c, rot); });
+    return rotated;
+}
+
+vector<Vector3f> getAllVs(const Curve& c)
+{
+    vector<Vector3f> result(c.size());
+    transform(c.begin(), c.end(), result.begin(), [](const CurvePoint& cp) {return cp.V; });
+    return result;
+}
+vector<Vector3f> getAllNs(const Curve& c)
+{
+    vector<Vector3f> result(c.size());
+    // reverse direction because assignment implicitly assumes we're going top to bottom on the left side of the xy plane.
+    transform(c.begin(), c.end(), result.begin(), [](const CurvePoint& cp) {return (-1)*cp.N; });
+    return result;
+}
+
+vector<Tup3u> createFaces(int curve_length, int steps)
+/*
+* creates faces of a revolved profile by connecting indexes of two curves at a time.
+* */
+{
+    vector<Tup3u> faces;
+    faces.reserve(curve_length * 2);
+    for (int step = 0; step < steps; ++step)
+    {
+        int cur_rev_start = step * curve_length;
+        int next_rev_start = (step + 1) * curve_length;
+        if (step == steps - 1) // loop back to first profile.
+            next_rev_start = 0;
+
+        for (int i = 0; i < curve_length - 1; ++i)
+        {
+            int cur_idx = cur_rev_start + i;
+            int next_idx = next_rev_start + i;
+            /*
+            * cur_idx+1------next_idx+1
+            * note that in OpenGL the triangle's normal 
+            * is via hand rule of the order of verticies
+            * in ccw direction (i.e. right hand).
+            * 
+            * cur_idx--------next_idx
+            * */
+            Tup3u bottom_triangle = Tup3u(cur_idx, cur_idx + 1, next_idx + 1);
+            Tup3u top_triangle = Tup3u(next_idx + 1, next_idx, cur_idx);
+            // i tried this but it gave a triangle pattern bc the direction isn't consistent. needs to be ccw!!
+//            Tup3u bottom_triangle = Tup3u(cur_idx + 1, next_idx, next_idx + 1);
+//            Tup3u top_triangle = Tup3u(cur_idx, cur_idx + 1, next_idx);
+            faces.push_back(bottom_triangle);
+            faces.push_back(top_triangle);
+        }
+    }
+    return faces;
+}
+
+void addVertAndNormalToSurface(const Curve& curve, Surface& surface)
+{
+    vector< Vector3f > VV = getAllVs(curve);
+    vector< Vector3f > VN = getAllNs(curve);
+    surface.VV.insert(surface.VV.end(), VV.begin(), VV.end());
+    surface.VN.insert(surface.VN.end(), VN.begin(), VN.end());
+}
+
 Surface makeSurfRev(const Curve &profile, unsigned steps)
 {
     Surface surface;
@@ -29,11 +109,53 @@ Surface makeSurfRev(const Curve &profile, unsigned steps)
         exit(0);
     }
 
-    // TODO: Here you should build the surface.  See surf.h for details.
-
-    cerr << "\t>>> makeSurfRev called (but not implemented).\n\t>>> Returning empty surface." << endl;
- 
+    /*
+    * method: we want to 
+    * 1. rotate the profile curve around the Y axis in 2pi/<steps> angles each time, 
+    * then create faces to connect it all up somehow
+    * */
+    double angle_step = 2 * M_PI / steps;
+    Matrix3f rot = Matrix3f::rotateY(angle_step);
+    Curve prev_curve = profile;
+    addVertAndNormalToSurface(profile, surface);
+    for (int i = 1; i < steps; ++i) // already inserted the original profile.
+    {
+        Curve curve = getRotatedCurve(prev_curve, rot);
+        // connect the dots yay
+        addVertAndNormalToSurface(curve, surface);
+        prev_curve = curve;
+    }
+    vector<Tup3u> VF = createFaces(profile.size(), steps);
+    surface.VF = VF;
     return surface;
+}
+
+CurvePoint getCurvePointAtPlane(const CurvePoint& cp, const CurvePoint& new_base)
+{
+    Matrix3f tfm = Matrix3f(new_base.N, new_base.B, new_base.T);
+    CurvePoint res;
+    res.V = tfm * cp.V + new_base.V;
+    res.B = tfm * cp.B; // note that the z is only 1 here, in which case it'll be t.
+    res.T = tfm * cp.T;
+    res.N = tfm * cp.N;
+    return res;
+}
+
+Curve getCurveAtPlane(const Curve& profile, const CurvePoint& plane)
+{
+    /* cyl is supposed to be in the coord system of 
+    1 0 0
+    0 1 0
+    0 0 1
+    * and we want to move it to 
+    * N B? i guess.
+    * */
+    Curve res(profile.size());
+    transform(profile.begin(), 
+        profile.end(), 
+        res.begin(), 
+        [plane](CurvePoint c) {return getCurvePointAtPlane(c, plane); });
+    return res;
 }
 
 Surface makeGenCyl(const Curve &profile, const Curve &sweep )
@@ -46,10 +168,22 @@ Surface makeGenCyl(const Curve &profile, const Curve &sweep )
         exit(0);
     }
 
-    // TODO: Here you should build the surface.  See surf.h for details.
+    /*
+    * we need to:
+    2. align the profile around the points of the sweep.
+    3. connect the points to the previous ones in a triangle fashion like the revolve.
+    * */
 
-    cerr << "\t>>> makeGenCyl called (but not implemented).\n\t>>> Returning empty surface." <<endl;
-
+    for (int i = 0; i < sweep.size(); ++i)
+    {
+        // move profile to plane defined by the tangent to the vector.
+        // alt. defined by the normal and binormal.
+        Curve curve = getCurveAtPlane(profile, sweep[i]);
+        addVertAndNormalToSurface(curve, surface);
+    }
+    // loop ends on another point at the same point as the start so we get a closed-surface as a byproduct.
+    vector<Tup3u> VF = createFaces(profile.size(), sweep.size()); 
+    surface.VF = VF;
     return surface;
 }
 

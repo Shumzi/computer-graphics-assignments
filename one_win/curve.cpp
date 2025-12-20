@@ -60,6 +60,36 @@ CurvePoint getPointOn2DBezCurve(float t, Vector3f p_0, Vector3f  p_1, Vector3f  
     return cp;
 }
 
+Vector3f getInitialB(Vector3f p_0, Vector3f  p_1, Vector3f  p_2, Vector3f  p_3)
+{
+    Vector3f t = qBezFirstDerivative(0, p_0, p_1, p_2, p_3).normalized(); // Tangent  (unit)
+    // graphics trick - find min elem and return that unit vector. 
+    // returns the most non-parallel vector out of the three unit-vectors.
+    // also retains original 2d bez result, 
+    // as in that case z will be smallest, and B=(0,0,1).
+    float x = abs(t.x());
+    float y = abs(t.y());
+    float z = abs(t.z());
+    if (x < y && x < z)
+        return Vector3f(1, 0, 0);
+    else if (y < x && y < z)
+        return Vector3f(0, 1, 0);
+    return Vector3f(0, 0, 1);
+}
+
+CurvePoint getPointOn3dBezCurve(float t, Vector3f p_0, Vector3f  p_1, Vector3f  p_2, Vector3f  p_3, Vector3f b_i_prev)
+{
+    CurvePoint cp;
+    cp.V = qBez(t, p_0, p_1, p_2, p_3);
+    // cp.V = Vector3f::cubicInterpolate(P[p], P[p + 1], P[p + 2], P[p + 3], t);
+    // implementing 2.
+    cp.T = qBezFirstDerivative(t, p_0, p_1, p_2, p_3).normalized(); // Tangent  (unit)
+    cp.N = Vector3f::cross(b_i_prev, cp.T); // Normal   (unit)
+    cp.B = Vector3f::cross(cp.T,cp.N); // Binormal (unit)
+    
+    return cp;
+}
+
 Curve evalBezier( const vector< Vector3f >& P, unsigned steps )
 {
     // Check
@@ -108,26 +138,26 @@ Curve evalBezier( const vector< Vector3f >& P, unsigned steps )
     * v = q(t) where q(t) = sum(b[1...4](t)*p[1...4])
     * t = q'(t)
     * */
-
+    Vector3f prev_b = getInitialB(P[0], P[1], P[2], P[3]);
     for (unsigned i = 0; i < (P.size() - 1) / 3; ++i) // loop over piecewise polynomial group. 
     {
-
         unsigned p = i * 3; // since each bezier piece adds 3 new anchor points (1: 0,1,2,3. 2: 3,4,5,6. etc.)
         for (unsigned j = 0; j < steps; j++) // calc <steps> points on current piece.
         {
             float t = float(j) / float(steps); // relative location that we are on the bez, since t runs from 0 to 1 on a bez.
             // calcing the curvepoint for the current point in piece #i.
             // implementing 1. Multiplication and addition for vector3f is already implemented.
-            CurvePoint cp = getPointOn2DBezCurve(t, P[p], P[p + 1], P[p + 2], P[p + 3]);
+            CurvePoint cp = getPointOn3dBezCurve(t, P[p], P[p + 1], P[p + 2], P[p + 3], prev_b);
             result.push_back(cp);
+            prev_b = cp.B;
         }
     }
     // we need to add another point for the last dot...
-    CurvePoint lastpoint = getPointOn2DBezCurve(1.0f,
+    CurvePoint lastpoint = getPointOn3dBezCurve(1.0f,
         P[P.size() - 4],
         P[P.size() - 3],
         P[P.size() - 2],
-        P[P.size() - 1]);
+        P[P.size() - 1], prev_b);
     result.push_back(lastpoint);
     cout << "resulting curve has " << result.size() << " points" << endl;
 

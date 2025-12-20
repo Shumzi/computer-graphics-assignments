@@ -1,5 +1,7 @@
 #include "surf.h"
 #include "extra.h"
+#include <cmath>
+#include <algorithm>
 using namespace std;
 
 namespace
@@ -19,6 +21,78 @@ namespace
     }
 }
 
+CurvePoint rotateCurvePoint(const CurvePoint &c, const  Matrix3f &m)
+{
+    CurvePoint cp;
+    cp.V = m * c.V;
+    cp.T = m * c.T;
+    cp.N = m * c.N;
+    cp.B = m * c.B;
+    return cp;
+}
+
+Curve getRotatedCurve(const Curve &c, const  Matrix3f &rot)
+{
+    Curve rotated(c.size());
+    transform(c.begin(), c.end(), rotated.begin(), 
+        [&rot](CurvePoint c) {return rotateCurvePoint(c, rot); });
+    return rotated;
+}
+
+vector<Vector3f> getAllVs(const Curve& c)
+{
+    vector<Vector3f> result(c.size());
+    transform(c.begin(), c.end(), result.begin(), [](const CurvePoint& cp) {return cp.V; });
+    return result;
+}
+vector<Vector3f> getAllNs(const Curve& c)
+{
+    vector<Vector3f> result(c.size());
+    // reverse direction because assignment implicitly assumes we're going top to bottom on the left side of the xy plane.
+    transform(c.begin(), c.end(), result.begin(), [](const CurvePoint& cp) {return (-1)*cp.N; });
+    return result;
+}
+
+vector<Tup3u> createFaces(int curve_length, int revolutions)
+/*
+* creates faces of a revolved profile by connecting indexes of two curves at a time.
+* */
+{
+    vector<Tup3u> faces;
+    faces.reserve(curve_length * 2);
+    for (int rev = 0; rev < revolutions; ++rev)
+    {
+        int cur_rev_start = rev * curve_length;
+        int next_rev_start;
+        if (rev == revolutions - 1) // loop back to first profile.
+            next_rev_start = 0;
+        else
+            next_rev_start = (rev + 1) * curve_length;
+        for (int i = 0; i < curve_length - 1; ++i)
+        {
+            int cur_idx = cur_rev_start + i;
+            int next_idx = next_rev_start + i;
+            /*
+            * cur_idx+1------next_idx+1
+            * 
+            * 
+            * 
+            * 
+            * cur_idx--------next_idx
+            * */
+            Tup3u bottom_triangle = Tup3u(cur_idx, cur_idx + 1, next_idx + 1);
+            Tup3u top_triangle = Tup3u(next_idx + 1, next_idx, cur_idx);
+            // i tried this but it gave a triangle pattern bc the direction isn't consistent. needs to be ccw!!
+//            Tup3u bottom_triangle = Tup3u(cur_idx + 1, next_idx, next_idx + 1);
+//            Tup3u top_triangle = Tup3u(cur_idx, cur_idx + 1, next_idx);
+            faces.push_back(bottom_triangle);
+            faces.push_back(top_triangle);
+        }
+    }
+    // loop back the last revolution
+    return faces;
+}
+
 Surface makeSurfRev(const Curve &profile, unsigned steps)
 {
     Surface surface;
@@ -29,10 +103,30 @@ Surface makeSurfRev(const Curve &profile, unsigned steps)
         exit(0);
     }
 
-    // TODO: Here you should build the surface.  See surf.h for details.
-
-    cerr << "\t>>> makeSurfRev called (but not implemented).\n\t>>> Returning empty surface." << endl;
- 
+    /*
+    * method: we want to 
+    * 1. rotate the profile curve around the Y axis in 2pi/<steps> angles each time, 
+    * then create faces to connect it all up somehow
+    * */
+    float angle_step = 2 * M_PI / steps;
+    Matrix3f rot = Matrix3f::rotateY(angle_step);
+    vector<Vector3f> profile_verts = getAllVs(profile);
+    vector<Vector3f> first_VN = getAllNs(profile);
+    Curve prev_curve = profile;
+    surface.VV.insert(surface.VV.end(), profile_verts.begin(), profile_verts.end());
+    surface.VN.insert(surface.VN.end(), first_VN.begin(), first_VN.end());
+    for (int i = 1; i < steps; ++i) // already inserted the original profile.
+    {
+        Curve curve = getRotatedCurve(prev_curve, rot);
+        // connect the dots yay
+        vector< Vector3f > VV = getAllVs(curve);
+        vector< Vector3f > VN = getAllNs(curve);
+        surface.VV.insert(surface.VV.end(), VV.begin(), VV.end());
+        surface.VN.insert(surface.VN.end(), VN.begin(), VN.end());
+        prev_curve = curve;
+    }
+    vector<Tup3u> VF = createFaces(profile.size(), steps);
+    surface.VF = VF;
     return surface;
 }
 

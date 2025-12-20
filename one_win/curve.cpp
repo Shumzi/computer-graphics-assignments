@@ -84,8 +84,8 @@ CurvePoint getPointOn3dBezCurve(float t, Vector3f p_0, Vector3f  p_1, Vector3f  
     // cp.V = Vector3f::cubicInterpolate(P[p], P[p + 1], P[p + 2], P[p + 3], t);
     // implementing 2.
     cp.T = qBezFirstDerivative(t, p_0, p_1, p_2, p_3).normalized(); // Tangent  (unit)
-    cp.N = Vector3f::cross(b_i_prev, cp.T); // Normal   (unit)
-    cp.B = Vector3f::cross(cp.T,cp.N); // Binormal (unit)
+    cp.N = Vector3f::cross(b_i_prev, cp.T).normalized(); // Normal   (unit). 
+    cp.B = Vector3f::cross(cp.T,cp.N).normalized(); // Binormal (unit)
     
     return cp;
 }
@@ -245,8 +245,10 @@ Curve evalBspline( const vector< Vector3f >& P, unsigned steps )
         bez_cps.push_back(equivalent_bez_cps[0]);
         bez_cps.push_back(equivalent_bez_cps[1]);
         bez_cps.push_back(equivalent_bez_cps[2]);
-        bez_cps.push_back(equivalent_bez_cps[3]);
+        if (i == P.size() - 4) // on last piece we add the final cp, otherwise the next piece's first point will be the prev last one.
+            bez_cps.push_back(equivalent_bez_cps[3]);
     }
+    cerr << "calling evalBez w " << bez_cps.size() << " cps" << endl;
     result = evalBezier(bez_cps, steps);
 
     cerr << "\t>>> Steps (type steps): " << steps << endl;

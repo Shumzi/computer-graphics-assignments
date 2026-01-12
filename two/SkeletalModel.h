@@ -73,6 +73,8 @@ public:
 
 private:
 
+	void drawJointsHelper(Joint* j);
+
 	// pointer to the root joint
 	Joint* m_rootJoint;
 	// the list of joints.

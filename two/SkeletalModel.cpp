@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void SkeletalModel::load(const char *skeletonFile, const char *meshFile, const char *attachmentsFile)
+void SkeletalModel::load(const char* skeletonFile, const char* meshFile, const char* attachmentsFile)
 {
 	loadSkeleton(skeletonFile);
 
@@ -23,7 +23,7 @@ void SkeletalModel::draw(Matrix4f cameraMatrix, bool skeletonVisible)
 	m_matrixStack.clear();
 	m_matrixStack.push(cameraMatrix);
 
-	if( skeletonVisible )
+	if (skeletonVisible)
 	{
 		drawJoints();
 
@@ -39,12 +39,50 @@ void SkeletalModel::draw(Matrix4f cameraMatrix, bool skeletonVisible)
 	}
 }
 
-void SkeletalModel::loadSkeleton( const char* filename )
+void SkeletalModel::loadSkeleton(const char* filename)
 {
-	// Load the skeleton from file here.
+	ifstream in(filename);
+	if (!in)
+	{
+		cerr << filename << " not found\a" << endl;
+		return;
+	}
+	cerr << endl << "*** loading skeleton initial translations ***" << endl;
+
+	float x, y, z;
+	int parent_idx;
+
+	while (in >> x >> y >> z >> parent_idx)
+	{
+		Joint* j = new Joint();
+		Vector4f translation_vec = Vector4f(x, y, z, 1);
+		Matrix4f translate = Matrix4f::identity();
+		translate.setCol(3, translation_vec);
+		j->transform = translate;
+		if (parent_idx == -1) // first node.
+			m_rootJoint = j;
+		else
+		{
+			Joint* parent_j = m_joints.at(parent_idx);
+			parent_j->children.push_back(j);
+		}
+		m_joints.push_back(j);
+	}
+
+	in.close();
 }
 
-void SkeletalModel::drawJoints( )
+void SkeletalModel::drawJointsHelper(Joint* j)
+{
+	m_matrixStack.push(j->transform);
+	glLoadMatrixf(m_matrixStack.top());
+	glutSolidSphere(0.025f, 12, 12);
+	for (const auto& child : j->children)
+		drawJointsHelper(child);
+	m_matrixStack.pop();
+}
+
+void SkeletalModel::drawJoints()
 {
 	// Draw a sphere at each joint. You will need to add a recursive helper function to traverse the joint hierarchy.
 	//
@@ -54,10 +92,11 @@ void SkeletalModel::drawJoints( )
 	// You are *not* permitted to use the OpenGL matrix stack commands
 	// (glPushMatrix, glPopMatrix, glMultMatrix).
 	// You should use your MatrixStack class
-	// and use glLoadMatrix() before your drawing call.
+	// and use glLoadMatrix() before your drawing call
+	drawJointsHelper(m_rootJoint);
 }
 
-void SkeletalModel::drawSkeleton( )
+void SkeletalModel::drawSkeleton()
 {
 	// Draw boxes between the joints. You will need to add a recursive helper function to traverse the joint hierarchy.
 }

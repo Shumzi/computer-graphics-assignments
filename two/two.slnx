@@ -3,5 +3,8 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
+  <Project Path="../A1_win/one.vcxproj" Id="536bc969-3cd2-6981-df8c-ec6b14905cfa">
+    <Platform Project="Win32" />
+  </Project>
   <Project Path="two.vcxproj" Id="8698b02b-7e9d-447c-90f6-d1824e5024ff" />
 </Solution>

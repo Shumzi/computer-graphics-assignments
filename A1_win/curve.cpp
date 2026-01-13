@@ -202,11 +202,12 @@ void findBspToBezMat()
     cerr << "conversion mat:" << endl;
     conversion_mat.print();
     /* result:
+    * bsp2bez:
     * [ 0.1667 0.0000 0.0000 0.0000 ]
     * [ 0.6667 0.6667 0.3333 0.1667 ]
     * [ 0.1667 0.3333 0.6667 0.6667 ]
     * [ 0.0000 0.0000 0.0000 0.1667 ]
-    * bez-bsp (accidentally did the wrong way at first):
+    * bez2bsp (accidentally did the wrong way at first):
     * [ 6.0000 -0.0000 0.0000 0.0000 ]
     * [ -7.0000 2.0000 -1.0000 2.0000 ]
     * [ 2.0000 -1.0000 2.0000 -7.0000 ]

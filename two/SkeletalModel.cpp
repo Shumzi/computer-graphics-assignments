@@ -96,14 +96,56 @@ void SkeletalModel::drawJoints()
 	drawJointsHelper(m_rootJoint);
 }
 
+void SkeletalModel::drawSkeletonHelper(Joint* j)
+{
+	// cube starts at -.5,-.5,-.5 to .5,.5,.5
+	// move it up by 0.5 in z (so ranges from 0 to 1).
+	// then scale to -.025,-.0.25,0 to -.025,-.0.25,l)
+	// then rotate to the child joint.
+	m_matrixStack.push(j->transform);
+	Matrix4f translateZ = Matrix4f::translation(0, 0, .5f);
+	float eps = 0.001f;
+	for (const auto& child : j->children)
+	{
+		Vector3f childTranslate = child->transform.getCol(3).xyz();
+		float l = childTranslate.xyz().abs();
+		if (l > eps) // child isn't at parent location, draw.
+		{
+			Matrix4f scale = Matrix4f::scaling(.05f, .05f, l);
+			// rotating the top of the cube (i.e. the z comp.) to the child joint,
+			// and making sure the x and y comp. stay orth (otherwise we just squish the cube).
+			Matrix4f rotateToChild = Matrix4f::identity();
+			Vector3f yRotate = Vector3f::cross(childTranslate, Vector3f(0, 0, 1)).normalized();
+			Vector3f xRotate = Vector3f::cross(childTranslate, yRotate).normalized();
+			Matrix3f rotateToZ = Matrix3f(xRotate, yRotate, childTranslate.normalized());
+			rotateToChild.setSubmatrix3x3(0, 0, rotateToZ);
+			// first translate, then scale, then rotate to child (then in the stack it'll move to the parent joint).
+			Matrix4f cubeOp = rotateToChild * scale * translateZ;
+			m_matrixStack.push(cubeOp);
+			glLoadMatrixf(m_matrixStack.top());
+			glutSolidCube(1.0f);
+			m_matrixStack.pop();
+		}
+		drawSkeletonHelper(child);
+	}
+	m_matrixStack.pop();
+
+}
+
 void SkeletalModel::drawSkeleton()
 {
 	// Draw boxes between the joints. You will need to add a recursive helper function to traverse the joint hierarchy.
+	drawSkeletonHelper(m_rootJoint);
 }
 
 void SkeletalModel::setJointTransform(int jointIndex, float rX, float rY, float rZ)
 {
 	// Set the rotation part of the joint's transformation matrix based on the passed in Euler angles.
+	Joint* j = m_joints.at(jointIndex);
+	Matrix3f rotX = Matrix3f::rotateX(rX);
+	Matrix3f rotY = Matrix3f::rotateY(rY);
+	Matrix3f rotZ = Matrix3f::rotateZ(rZ);
+	j->transform.setSubmatrix3x3(0,0, rotX * rotY * rotZ);
 }
 
 

@@ -131,6 +131,10 @@ Surface makeSurfRev(const Curve &profile, unsigned steps)
 }
 
 CurvePoint getCurvePointAtPlane(const CurvePoint& cp, const CurvePoint& new_base)
+/*
+* helper function for getCurveAtPlane. 
+* For each point in the curve, we'll move it to the new plane
+* */
 {
     Matrix3f tfm = Matrix3f(new_base.N, new_base.B, new_base.T);
     CurvePoint res;
@@ -148,7 +152,7 @@ Curve getCurveAtPlane(const Curve& profile, const CurvePoint& plane)
     0 1 0
     0 0 1
     * and we want to move it to 
-    * N B? i guess.
+    * N X B? i guess.
     * */
     Curve res(profile.size());
     transform(profile.begin(), 

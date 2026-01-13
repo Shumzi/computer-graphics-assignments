@@ -114,13 +114,13 @@ void SkeletalModel::drawSkeletonHelper(Joint* j)
 			Matrix4f scale = Matrix4f::scaling(.05f, .05f, l);
 			// rotating the top of the cube (i.e. the z comp.) to the child joint,
 			// and making sure the x and y comp. stay orth (otherwise we just squish the cube).
-			Matrix4f rotateToChild = Matrix4f::identity();
+			Matrix4f rotateToZ4d = Matrix4f::identity();
 			Vector3f yRotate = Vector3f::cross(childTranslate, Vector3f(0, 0, 1)).normalized();
 			Vector3f xRotate = Vector3f::cross(childTranslate, yRotate).normalized();
 			Matrix3f rotateToZ = Matrix3f(xRotate, yRotate, childTranslate.normalized());
-			rotateToChild.setSubmatrix3x3(0, 0, rotateToZ);
+			rotateToZ4d.setSubmatrix3x3(0, 0, rotateToZ);
 			// first translate, then scale, then rotate to child (then in the stack it'll move to the parent joint).
-			Matrix4f cubeOp = rotateToChild * scale * translateZ;
+			Matrix4f cubeOp = rotateToZ4d * scale * translateZ;
 			m_matrixStack.push(cubeOp);
 			glLoadMatrixf(m_matrixStack.top());
 			glutSolidCube(1.0f);
@@ -148,6 +148,18 @@ void SkeletalModel::setJointTransform(int jointIndex, float rX, float rY, float 
 	j->transform.setSubmatrix3x3(0,0, rotX * rotY * rotZ);
 }
 
+void SkeletalModel::computeBindWorldToJointTransformsHelper(Joint* j)
+{
+	// note that the inverse for translation is just (-m)
+	// and since the bind doesn't have ANY rotation
+	// the direction of the mat. mult. is irrelevant, as its just addition practically.
+	Matrix4f inv_transform = j->transform.inverse();
+	m_matrixStack.push(inv_transform);
+	j->bindWorldToJointTransform = m_matrixStack.top();
+	for (auto& child : j->children)
+		computeBindWorldToJointTransformsHelper(child);
+	m_matrixStack.pop();
+}
 
 void SkeletalModel::computeBindWorldToJointTransforms()
 {
@@ -159,6 +171,16 @@ void SkeletalModel::computeBindWorldToJointTransforms()
 	//
 	// This method should update each joint's bindWorldToJointTransform.
 	// You will need to add a recursive helper function to traverse the joint hierarchy.
+	computeBindWorldToJointTransformsHelper(m_rootJoint);
+}
+
+void SkeletalModel::updateCurrentJointToWorldTransformsHelper(Joint* j)
+{
+	m_matrixStack.push(j->transform);
+	j->currentJointToWorldTransform = m_matrixStack.top();
+	for (auto& child : j->children)
+		updateCurrentJointToWorldTransformsHelper(child);
+	m_matrixStack.pop();
 }
 
 void SkeletalModel::updateCurrentJointToWorldTransforms()
@@ -171,6 +193,7 @@ void SkeletalModel::updateCurrentJointToWorldTransforms()
 	//
 	// This method should update each joint's bindWorldToJointTransform.
 	// You will need to add a recursive helper function to traverse the joint hierarchy.
+	updateCurrentJointToWorldTransformsHelper(m_rootJoint);
 }
 
 void SkeletalModel::updateMesh()
@@ -180,5 +203,20 @@ void SkeletalModel::updateMesh()
 	// given the current state of the skeleton.
 	// You will need both the bind pose world --> joint transforms.
 	// and the current joint --> world transforms.
+	// remember that for each vert we'll do:
+	// sum_j(w_j*CurrentJointToWorld*BindtoJoint*vert)
+	for (int vert_idx = 0; vert_idx < m_mesh.bindVertices.size(); ++vert_idx)
+	{
+		Vector4f bindVertex = Vector4f(m_mesh.bindVertices[vert_idx], 1);
+		Vector3f currentVertex;
+		for (int joint_idx=0; joint_idx < m_mesh.attachments[vert_idx].size();++joint_idx)
+		{
+			float weight = m_mesh.attachments[vert_idx][joint_idx];
+			Joint* currentJoint = m_joints.at(joint_idx + 1);
+			Vector4f weightedVert = currentJoint->currentJointToWorldTransform * currentJoint->bindWorldToJointTransform * bindVertex;
+			weightedVert = weightedVert * weight;
+			currentVertex += weightedVert.xyz();
+		}
+	}
 }
 

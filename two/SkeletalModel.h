@@ -76,6 +76,8 @@ private:
 
 	void drawJointsHelper(Joint* j);
 	void drawSkeletonHelper(Joint* j);
+	void computeBindWorldToJointTransformsHelper(Joint* j);
+	void updateCurrentJointToWorldTransformsHelper(Joint* j);
 
 	// pointer to the root joint
 	Joint* m_rootJoint;

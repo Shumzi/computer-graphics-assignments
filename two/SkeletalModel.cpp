@@ -206,18 +206,30 @@ void SkeletalModel::updateMesh()
 	// and the current joint --> world transforms.
 	// remember that for each vert we'll do:
 	// sum_j(w_j*CurrentJointToWorld*BindtoJoint*vert)
+	int numJoints = m_joints.size();
+	vector<Matrix4f> skinningMatricies;
+	skinningMatricies.reserve(numJoints-1);
+	Joint* currentJoint;
+	for(int j=1;j<numJoints;++j)
+	{
+		currentJoint = m_joints[j];
+		skinningMatricies.push_back(currentJoint->currentJointToWorldTransform * currentJoint->bindWorldToJointTransform);
+	}
+
 	for (int vert_idx = 0; vert_idx < m_mesh.bindVertices.size(); ++vert_idx)
 	{
 		Vector4f bindVertex = Vector4f(m_mesh.bindVertices[vert_idx], 1);
-		bindVertex = m_matrixStack.top() * bindVertex; // 
 		Vector3f currentVertex;
-		for (int joint_idx=0; joint_idx < m_mesh.attachments[vert_idx].size();++joint_idx)
+		
+		for (int skinning_idx=0; skinning_idx < m_mesh.attachments[vert_idx].size();++skinning_idx)
 		{
-			float weight = m_mesh.attachments[vert_idx][joint_idx];
-			Joint* currentJoint = m_joints.at(joint_idx + 1);
-			Vector4f weightedVert = currentJoint->currentJointToWorldTransform * currentJoint->bindWorldToJointTransform * bindVertex;
-			weightedVert = weightedVert * weight;
-			currentVertex += weightedVert.xyz();
+			float weight = m_mesh.attachments[vert_idx][skinning_idx];
+			float eps = 0.00001;
+			if (weight > eps)
+			{
+				Vector4f transformed = skinningMatricies.at(skinning_idx) * bindVertex;
+				currentVertex += transformed.xyz() * weight;
+			}
 		}
 		m_mesh.currentVertices.at(vert_idx) = currentVertex;
 	}

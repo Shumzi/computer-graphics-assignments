@@ -193,6 +193,7 @@ void SkeletalModel::updateCurrentJointToWorldTransforms()
 	//
 	// This method should update each joint's bindWorldToJointTransform.
 	// You will need to add a recursive helper function to traverse the joint hierarchy.
+	m_matrixStack.clear(); // can't trust these ppl anymore.. they ain't doin' their job I tellya.
 	updateCurrentJointToWorldTransformsHelper(m_rootJoint);
 }
 
@@ -208,6 +209,7 @@ void SkeletalModel::updateMesh()
 	for (int vert_idx = 0; vert_idx < m_mesh.bindVertices.size(); ++vert_idx)
 	{
 		Vector4f bindVertex = Vector4f(m_mesh.bindVertices[vert_idx], 1);
+		bindVertex = m_matrixStack.top() * bindVertex; // 
 		Vector3f currentVertex;
 		for (int joint_idx=0; joint_idx < m_mesh.attachments[vert_idx].size();++joint_idx)
 		{
@@ -217,6 +219,7 @@ void SkeletalModel::updateMesh()
 			weightedVert = weightedVert * weight;
 			currentVertex += weightedVert.xyz();
 		}
+		m_mesh.currentVertices.at(vert_idx) = currentVertex;
 	}
 }
 

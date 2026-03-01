@@ -1,5 +1,5 @@
 #include "pendulumSystem.h"
-
+#include <iostream>
 PendulumSystem::PendulumSystem(int numParticles): ParticleSpringSystem(numParticles)
 {
     // first particle is stationary.
@@ -31,7 +31,7 @@ void PendulumSystem::setupBasicSprings()
 vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 {
     vector<Vector3f> f;
-    for (unsigned i = 0; i < m_numParticles; ++i)
+    for (int i = 0; i < m_numParticles; ++i)
     {
         // gravity
         f.push_back(Vector3f(0, -particleMass * g, 0)); // positively down maaannn.
@@ -49,7 +49,7 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
     newState.push_back(Vector3f::ZERO); // first particle is stationary.
     newState.push_back(Vector3f::ZERO);
 
-    for (unsigned i = 1; i < m_numParticles; ++i)
+    for (int i = 1; i < m_numParticles; ++i)
     {
         newState.push_back(getVelocity(i));
         newState.push_back(f.at(i) / particleMass);

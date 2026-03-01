@@ -8,7 +8,15 @@ struct Dir
 ClothSystem::ClothSystem(unsigned numParticlesPerSide) : ParticleSpringSystem(numParticlesPerSide * numParticlesPerSide)
 {
 	m_numParticlesPerSide = numParticlesPerSide;
-	
+	// setup particles	
+	for(int j=0;j<m_numParticlesPerSide; ++j)
+	{
+		for(int i=0;i<m_numParticlesPerSide; ++i)
+		{
+			m_vVecState.push_back(Vector3f(i,j,0));
+			m_vVecState.push_back(Vector3f(0,0,0));
+		}
+	}	
 	setupBasicSprings();
 }
 void ClothSystem::setupBasicSprings()
@@ -36,7 +44,7 @@ void ClothSystem::setupBasicSprings()
 				if(iNeighbor >= 0 && iNeighbor < m_numParticlesPerSide && jNeighbor >= 0 && jNeighbor < m_numParticlesPerSide)
 				{
 					int neighborIdx = iNeighbor * m_numParticlesPerSide + jNeighbor;
-					springs.push_back(Spring{curIdx, neighborIdx, 0.3f, 0.1f});
+					springs.push_back(Spring{curIdx, neighborIdx, 5.0f, 1.0f});
 				}
 			}
 			// shear springs
@@ -47,7 +55,7 @@ void ClothSystem::setupBasicSprings()
 				if(iNeighbor >= 0 && iNeighbor < m_numParticlesPerSide && jNeighbor >= 0 && jNeighbor < m_numParticlesPerSide)
 				{
 					int neighborIdx = iNeighbor * m_numParticlesPerSide + jNeighbor;
-					springs.push_back(Spring{curIdx, neighborIdx, 0.3f, 0.1f});
+					springs.push_back(Spring{curIdx, neighborIdx, 0.3f, 1.0f});
 				}
 			}
 			// flex springs
@@ -58,7 +66,7 @@ void ClothSystem::setupBasicSprings()
 				if(iNeighbor >= 0 && iNeighbor < m_numParticlesPerSide && jNeighbor >= 0 && jNeighbor < m_numParticlesPerSide)
 				{
 					int neighborIdx = iNeighbor * m_numParticlesPerSide + jNeighbor;
-					springs.push_back(Spring{curIdx, neighborIdx, 0.3f, 0.1f});
+					springs.push_back(Spring{curIdx, neighborIdx, 0.3f, 1.0f});
 				}
 			}
 		}
@@ -86,11 +94,16 @@ vector<Vector3f> ClothSystem::evalF(vector<Vector3f> state)
     }
     vector<Vector3f> newState;
 
-    for (unsigned i = 0; i < m_numParticles; ++i)
+	for (unsigned i = 0; i < m_numParticles - m_numParticlesPerSide; ++i)
     {
         newState.push_back(getVelocity(i));
         newState.push_back(f.at(i) / particleMass);
     }
+	for (int i = m_numParticles - m_numParticlesPerSide; i < m_numParticles; ++i)
+	{
+		newState.push_back(Vector3f::ZERO); // first row is stationary.
+		newState.push_back(Vector3f::ZERO);
+	}
     return newState;
 }
 

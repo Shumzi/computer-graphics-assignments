@@ -23,29 +23,39 @@ namespace
 
     ParticleSystem *system;
     TimeStepper *timeStepper;
-    float stepsize = 0.01f;
+    float stepsize = 0.03f;
 
     // initialize your particle systems
     void initSystem(int argc, char *argv[])
     {
         // seed the random number generator with the current time
         srand(time(NULL));
-        system = new PendulumSystem(5);
+        system = new ClothSystem(15);
         // system = new ParticleSpringSystem(5);
         // system.setBasicSprings();
         if (argc > 1) // timeStepper type supplied.
         {
             string solvertype = argv[1];
             if (solvertype == "e")
+            {
+                cout << "using Forward Euler" << endl;
                 timeStepper = new ForwardEuler();
+            }
             else if (solvertype == "t")
+            {
+                cout << "using Trapezoidal" << endl;
                 timeStepper = new Trapzoidal();
+            }
             else if (solvertype == "r")
+            {
+                cout << "using RK4" << endl;
                 timeStepper = new RK4();
+            }
             else
                 throw invalid_argument("can only choose e - forwardeuler, t - trapzoidal, or r - rk4.");
         } // else + default - rk4.
         else
+            cout << "using RK4" << endl;
             timeStepper = new RK4();
         if (argc > 2) // stepsize supplied.
             stepsize = atof(argv[2]);

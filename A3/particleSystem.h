@@ -26,7 +26,9 @@ public:
 	virtual void draw() = 0;
 	
 protected:
-
+	// vector state of particles.
+	// 0mod2 contains positions of particles.
+	// 1mod2 contains velocities of particles.
 	vector<Vector3f> m_vVecState;
 	
 };

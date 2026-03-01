@@ -3,7 +3,12 @@
 #include <cmath>
 #include <iostream>
 
-ParticleSpringSystem::ParticleSpringSystem(int numParticles) : ParticleSystem(numParticles) {}
+ParticleSpringSystem::ParticleSpringSystem(int numParticles) : ParticleSystem(numParticles)
+ {
+	cout<<"mass: " << particleMass << endl;
+	cout<<"drag: " << drag << endl;
+	cout<<"g: " << g << endl;
+ }
 
 Vector3f ParticleSpringSystem::getPosition(int particleIdx)
 {

@@ -8,7 +8,7 @@ SRCS      = $(wildcard *.cpp)
 SRCS     += $(wildcard vecmath/src/*.cpp)
 OBJS      = $(SRCS:.cpp=.o)
 PROG      = a3
-
+CXXFLAGS += -MMD -MP
 all: $(SRCS) $(PROG)
 
 $(PROG): $(OBJS)
@@ -22,3 +22,5 @@ depend:
 
 clean:
 	rm $(OBJS) $(PROG)
+
+-include $(OBJS:.o=.d)

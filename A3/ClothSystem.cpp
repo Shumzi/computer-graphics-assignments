@@ -35,44 +35,31 @@ void ClothSystem::setupBasicSprings()
 	{
 		for (int j = 0; j < m_numParticlesPerSide; ++j)
 		{
-			int curIdx = i * m_numParticlesPerSide + j;
 			// structural springs
-			for (const auto &dir : structuralSpringDir)
-			{
-				int iNeighbor = i + dir.dx;
-				int jNeighbor = j + dir.dy;
-				if(iNeighbor >= 0 && iNeighbor < m_numParticlesPerSide && jNeighbor >= 0 && jNeighbor < m_numParticlesPerSide)
-				{
-					int neighborIdx = iNeighbor * m_numParticlesPerSide + jNeighbor;
-					springs.push_back(Spring{curIdx, neighborIdx, 5.0f, 1.0f});
-				}
-			}
-			// shear springs
-			for (const auto &dir : shearSpringDir)
-			{
-				int iNeighbor = i + dir.dx;
-				int jNeighbor = j + dir.dy;
-				if(iNeighbor >= 0 && iNeighbor < m_numParticlesPerSide && jNeighbor >= 0 && jNeighbor < m_numParticlesPerSide)
-				{
-					int neighborIdx = iNeighbor * m_numParticlesPerSide + jNeighbor;
-					springs.push_back(Spring{curIdx, neighborIdx, 0.3f, 1.0f});
-				}
-			}
+            addSpringsAroundParticle(structuralSpringDir, i, j);
+            // shear springs
+			addSpringsAroundParticle(shearSpringDir, i, j);
 			// flex springs
-			for (const auto &dir : flexSpringDir)
-			{
-				int iNeighbor = i + dir.dx;
-				int jNeighbor = j + dir.dy;
-				if(iNeighbor >= 0 && iNeighbor < m_numParticlesPerSide && jNeighbor >= 0 && jNeighbor < m_numParticlesPerSide)
-				{
-					int neighborIdx = iNeighbor * m_numParticlesPerSide + jNeighbor;
-					springs.push_back(Spring{curIdx, neighborIdx, 0.3f, 1.0f});
-				}
-			}
+			addSpringsAroundParticle(flexSpringDir, i, j);
 		}
 	}
 	cout << "total num of springs: " << springs.size() << endl;
 }
+void ClothSystem::addSpringsAroundParticle(std::vector<Dir> &structuralSpringDir, int i, int j)
+{
+    for (const auto &dir : structuralSpringDir)
+    {
+        int iNeighbor = i + dir.dx;
+        int jNeighbor = j + dir.dy;
+        int curIdx = i * m_numParticlesPerSide + j;
+        if (iNeighbor >= 0 && iNeighbor < m_numParticlesPerSide && jNeighbor >= 0 && jNeighbor < m_numParticlesPerSide)
+        {
+            int neighborIdx = iNeighbor * m_numParticlesPerSide + jNeighbor;
+            springs.push_back(Spring{curIdx, neighborIdx, 5.0f, 1.0f});
+        }
+    }
+}
+
 // TODO: implement evalF
 // for a given state, evaluate f(X,t)
 vector<Vector3f> ClothSystem::evalF(vector<Vector3f> state)
@@ -106,4 +93,3 @@ vector<Vector3f> ClothSystem::evalF(vector<Vector3f> state)
 	}
     return newState;
 }
-

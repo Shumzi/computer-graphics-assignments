@@ -13,7 +13,9 @@ public:
 	/**
 	 * @brief make structural, shear and flex springs in the cloth system.
 	 */
-	void setupBasicSprings() override;
+    void setupBasicSprings() override;
+    void adpap(std::vector<Dir> &structuralSpringDir, int i, int j);
+    void addSpringsAroundParticle(vector<Dir> &shearSpringDirs, int i, int j);
 	/**
 	 * @brief create plane of particles 
 	 */

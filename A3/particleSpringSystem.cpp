@@ -22,7 +22,7 @@ Vector3f ParticleSpringSystem::getVelocity(int particleIdx)
 
 Vector3f ParticleSpringSystem::springForce(Spring s)
 {
-	// −k(||d|| − r)*d/||d|| (i.e. vector direction) , where d = xi − xj .
+	// −k(||d|| − r)*d/||d|| (i.e. vector direction) , where d = xi − xj.
 	Vector3f p0 = getPosition(s.p0);
 	Vector3f p1 = getPosition(s.p1);
 	Vector3f d = p1 - p0;

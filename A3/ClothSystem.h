@@ -6,6 +6,10 @@
 
 #include "pendulumSystem.h"
 #include "Spring.h"
+struct Dir
+{
+	int dx, dy;
+};
 
 class ClothSystem: public ParticleSpringSystem
 {
@@ -15,12 +19,15 @@ public:
 	 */
     void setupBasicSprings() override;
     void adpap(std::vector<Dir> &structuralSpringDir, int i, int j);
-    void addSpringsAroundParticle(vector<Dir> &shearSpringDirs, int i, int j);
+    void addSpringsAroundParticle(vector<Dir> &SpringDirs, int i, int j);
 	/**
 	 * @brief create plane of particles 
 	 */
 	ClothSystem(unsigned numParticlesPerSide);
 	vector<Vector3f> evalF(vector<Vector3f> state) override;
+	bool toggleStructure = true;
+	bool toggleShear = true;
+	bool toggleFlex = true;
 private:
 	int m_numParticlesPerSide;
 };

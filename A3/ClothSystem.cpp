@@ -1,9 +1,6 @@
 #include "ClothSystem.h"
 #include <iostream>
-struct Dir
-{
-	int dx, dy;
-};
+
 
 ClothSystem::ClothSystem(unsigned numParticlesPerSide) : ParticleSpringSystem(numParticlesPerSide * numParticlesPerSide)
 {
@@ -16,7 +13,7 @@ ClothSystem::ClothSystem(unsigned numParticlesPerSide) : ParticleSpringSystem(nu
 			m_vVecState.push_back(Vector3f(i,j,0));
 			m_vVecState.push_back(Vector3f(0,0,0));
 		}
-	}	
+	}
 	setupBasicSprings();
 }
 void ClothSystem::setupBasicSprings()
@@ -45,9 +42,9 @@ void ClothSystem::setupBasicSprings()
 	}
 	cout << "total num of springs: " << springs.size() << endl;
 }
-void ClothSystem::addSpringsAroundParticle(std::vector<Dir> &structuralSpringDir, int i, int j)
+void ClothSystem::addSpringsAroundParticle(std::vector<Dir> &SpringDirs, int i, int j)
 {
-    for (const auto &dir : structuralSpringDir)
+    for (const auto &dir : SpringDirs)
     {
         int iNeighbor = i + dir.dx;
         int jNeighbor = j + dir.dy;

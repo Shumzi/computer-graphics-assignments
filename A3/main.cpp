@@ -21,7 +21,7 @@ using namespace std;
 namespace
 {
 
-    ParticleSystem *system;
+    ClothSystem *system;
     TimeStepper *timeStepper;
     float stepsize = 0.03f;
 
@@ -129,6 +129,12 @@ namespace
             camera.SetCenter(Vector3f::ZERO);
             break;
         }
+        case 'f':
+        {
+
+        }
+        case 't':
+        case 'r':
         default:
             cout << "Unhandled key press " << key << "." << endl;
         }

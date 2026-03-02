@@ -22,7 +22,7 @@ protected:
 	Vector3f springForce(Spring s);
 	vector<Spring> springs;
 	float drag = 1.1;
-	float g = 0.4; //
+	float g = 0.4;
 	float particleMass = 2.0f; // kg, assume constant mass?
 };
 

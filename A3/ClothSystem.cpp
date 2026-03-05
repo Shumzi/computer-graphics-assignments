@@ -10,14 +10,23 @@ ClothSystem::ClothSystem(unsigned numParticlesPerSide) : ParticleSpringSystem(nu
 	{
 		for (int i = 0; i < m_numParticlesPerSide; ++i)
 		{
-			m_vVecState.push_back(Vector3f((float)i / ((float)m_numParticlesPerSide/2), (float)j / ((float)m_numParticlesPerSide/2), 0));
+			m_vVecState.push_back(Vector3f((float)i, (float)j, 0));
 			m_vVecState.push_back(Vector3f(0, 0, 0));
 		}
 	}
 	setupBasicSprings();
 }
 
-// TODO: make helper func for unrolled i,j loc nxnx2 state vec.
+Vector3f ClothSystem::getPosition(int i, int j, const vector<Vector3f> &state)
+{
+	return ParticleSpringSystem::getPosition(i * m_numParticlesPerSide + j, state);
+}
+
+Vector3f ClothSystem::getVelocity(int i, int j, const vector<Vector3f> &state)
+{
+	return ParticleSpringSystem::getVelocity(i * m_numParticlesPerSide + j, state);
+}
+
 Vector3f ClothSystem::getPosition(int i, int j)
 {
 	return ParticleSpringSystem::getPosition(i * m_numParticlesPerSide + j);
@@ -71,8 +80,8 @@ void ClothSystem::addSpringsAroundParticle(std::vector<Dir> &SpringDirs, int i, 
 		if (iNeighbor >= 0 && iNeighbor < m_numParticlesPerSide && jNeighbor >= 0 && jNeighbor < m_numParticlesPerSide)
 		{
 			int neighborIdx = iNeighbor * m_numParticlesPerSide + jNeighbor;
-			float distBetweenNeighbors = (getPosition(i,j) - getPosition(iNeighbor, jNeighbor)).abs();
-			springs.push_back(Spring{curIdx, neighborIdx, 0.3f, distBetweenNeighbors});
+			float distBetweenNeighbors = (getPosition(i, j) - getPosition(iNeighbor, jNeighbor)).abs();
+			springs.push_back(Spring{curIdx, neighborIdx, 1.f, distBetweenNeighbors});
 		}
 	}
 }
@@ -85,21 +94,21 @@ vector<Vector3f> ClothSystem::evalF(vector<Vector3f> state)
 		// gravity
 		f.push_back(Vector3f(0, -particleMass * g, 0)); // positively down maaannn.
 		// drag
-		Vector3f v = ParticleSpringSystem::getVelocity(i);
+		Vector3f v = getVelocity(i, state);
 		f.at(i) -= drag * v; // already a vector so we're good.
 	}
 	// passing over springs and filling in the forces.
 	if (toggleStructure)
-		addSpringForces(f, structuralSpringsRange);
+		addSpringForces(f, structuralSpringsRange, state);
 	if (toggleShear)
-		addSpringForces(f, shearSpringsRange);
+		addSpringForces(f, shearSpringsRange, state);
 	if (toggleFlex)
-		addSpringForces(f, flexSpringsRange);
+		addSpringForces(f, flexSpringsRange, state);
 	vector<Vector3f> newState;
 
 	for (int i = 0; i < m_numParticles; ++i)
 	{
-		newState.push_back(getVelocity(i));
+		newState.push_back(getVelocity(i, state));
 		newState.push_back(f.at(i) / particleMass);
 	}
 	if (toggleMoveAnchors)
@@ -117,12 +126,12 @@ vector<Vector3f> ClothSystem::evalF(vector<Vector3f> state)
 	return newState;
 }
 
-void ClothSystem::addSpringForces(std::vector<Vector3f> &f, const SpringRange &sr)
+void ClothSystem::addSpringForces(std::vector<Vector3f> &f, const SpringRange &sr, const vector<Vector3f> &state)
 {
 	for (int i = sr.start; i < sr.end; ++i)
 	{
 		Spring spring = springs.at(i);
-		Vector3f sf = springForce(spring);
+		Vector3f sf = springForce(spring, state);
 		f.at(spring.p0) += sf;
 		f.at(spring.p1) -= sf;
 	}
@@ -198,16 +207,16 @@ void ClothSystem::draw()
 			for (int j = 0; j < m_numParticlesPerSide - 1; ++j)
 			{
 				/**
-				 * v0---v3
+				 * v3---v2
 				 * |    |
-				 * v1---v2
+				 * v0---v1
 				 */
 				Vector3f v0 = getPosition(i, j);
-				Vector3f v1 = getPosition(i + 1, j);
+				Vector3f v1 = getPosition(i, j + 1);
 				Vector3f v2 = getPosition(i + 1, j + 1);
-				Vector3f v3 = getPosition(i, j + 1);
+				Vector3f v3 = getPosition(i + 1, j);
 				Vector3f normal1 = Vector3f::cross(v1 - v0, v2 - v1).normalized();
-				Vector3f normal2 = Vector3f::cross(v2 - v3, v3 - v0).normalized();
+				Vector3f normal2 = Vector3f::cross(v3 - v2, v0 - v3).normalized();
 				glBegin(GL_TRIANGLES);
 				glNormal3fv(normal1);
 				glVertex3fv(v0);

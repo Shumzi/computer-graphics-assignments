@@ -23,7 +23,7 @@ namespace
 
     ClothSystem *system;
     TimeStepper *timeStepper;
-    float stepsize = 0.2f;
+    float stepsize = 0.1f;
     // initialize your particle systems
     void initSystem(int argc, char *argv[])
     {

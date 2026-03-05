@@ -10,6 +10,16 @@ ParticleSpringSystem::ParticleSpringSystem(int numParticles) : ParticleSystem(nu
 	cout<<"g: " << g << endl;
  }
 
+Vector3f ParticleSpringSystem::getPosition(int particleIdx, const vector<Vector3f> &state)
+{
+	return state.at(particleIdx * 2);
+}
+
+Vector3f ParticleSpringSystem::getVelocity(int particleIdx, const vector<Vector3f> &state)
+{
+	return state.at(particleIdx * 2 + 1);
+}
+
 Vector3f ParticleSpringSystem::getPosition(int particleIdx)
 {
 	return m_vVecState.at(particleIdx * 2);
@@ -20,7 +30,15 @@ Vector3f ParticleSpringSystem::getVelocity(int particleIdx)
 	return m_vVecState.at(particleIdx * 2 + 1);
 }
 
-Vector3f ParticleSpringSystem::springForce(Spring s)
+Vector3f ParticleSpringSystem::springForce(const Spring &s, const vector<Vector3f> &state)
+{
+	// −k(||d|| − r)*d/||d|| (i.e. vector direction) , where d = xi − xj.
+	Vector3f p0 = getPosition(s.p0, state);
+	Vector3f p1 = getPosition(s.p1, state);
+	Vector3f d = p1 - p0;
+	return s.k * (d.abs() - s.r) * d.normalized();
+}
+Vector3f ParticleSpringSystem::springForce(const Spring &s)
 {
 	// −k(||d|| − r)*d/||d|| (i.e. vector direction) , where d = xi − xj.
 	Vector3f p0 = getPosition(s.p0);

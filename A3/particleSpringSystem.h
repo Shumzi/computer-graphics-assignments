@@ -22,8 +22,8 @@ protected:
 	Vector3f springForce(Spring s);
 	vector<Spring> springs;
 	float drag = 0.5f;
-	float g = 1.0f;
-	float particleMass = .1f; // kg, assume constant mass?
+	float g = 1.f;
+	float particleMass = .05f; // kg
 };
 
 #endif

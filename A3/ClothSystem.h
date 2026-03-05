@@ -37,13 +37,15 @@ public:
 	bool toggleShear = false;
 	bool toggleFlex = false;
 	bool showWireframe = true;
+	bool toggleMoveAnchors = false;
 	int m_numParticlesPerSide;
 
 private:
 	void addSpringsAroundParticle(vector<Dir> &SpringDirs, int i, int j);
 	void addSpringForces(std::vector<Vector3f> &f, const SpringRange &sr);
-	void drawLines(const SpringRange &sr);
-	SpringRange structuralSpringsRange;
+    void moveAnchorsLineMotion(vector<Vector3f> &d);
+    void drawLines(const SpringRange &sr);
+    SpringRange structuralSpringsRange;
 	SpringRange shearSpringsRange;
 	SpringRange flexSpringsRange;
 };

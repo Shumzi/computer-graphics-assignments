@@ -165,6 +165,11 @@ namespace
             system = new ClothSystem(numParticlesPerSide-1);
             break;
         }
+        case 'm':
+        {
+            system->toggleMoveAnchors = !system->toggleMoveAnchors;
+            break;
+        }
         default:
             cout << "Unhandled key press " << key << "." << endl;
         }

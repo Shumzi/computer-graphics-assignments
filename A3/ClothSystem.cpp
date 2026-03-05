@@ -10,7 +10,7 @@ ClothSystem::ClothSystem(unsigned numParticlesPerSide) : ParticleSpringSystem(nu
 	{
 		for (int i = 0; i < m_numParticlesPerSide; ++i)
 		{
-			m_vVecState.push_back(Vector3f(i, j, 0));
+			m_vVecState.push_back(Vector3f((float)i / ((float)m_numParticlesPerSide/2), (float)j / ((float)m_numParticlesPerSide/2), 0));
 			m_vVecState.push_back(Vector3f(0, 0, 0));
 		}
 	}
@@ -71,7 +71,7 @@ void ClothSystem::addSpringsAroundParticle(std::vector<Dir> &SpringDirs, int i, 
 		if (iNeighbor >= 0 && iNeighbor < m_numParticlesPerSide && jNeighbor >= 0 && jNeighbor < m_numParticlesPerSide)
 		{
 			int neighborIdx = iNeighbor * m_numParticlesPerSide + jNeighbor;
-			float distBetweenNeighbors = sqrt(dir.dx * dir.dx + dir.dy * dir.dy);
+			float distBetweenNeighbors = (getPosition(i,j) - getPosition(iNeighbor, jNeighbor)).abs();
 			springs.push_back(Spring{curIdx, neighborIdx, 0.3f, distBetweenNeighbors});
 		}
 	}
@@ -102,14 +102,18 @@ vector<Vector3f> ClothSystem::evalF(vector<Vector3f> state)
 		newState.push_back(getVelocity(i));
 		newState.push_back(f.at(i) / particleMass);
 	}
-
-	// top corner particles are stationary
-	// top right corner
-	newState.at(newState.size() - 1) = 0;
-	newState.at(newState.size() - 2) = 0;
-	// top left corner
-	newState.at(newState.size() - 2 * m_numParticlesPerSide) = 0;
-	newState.at(newState.size() - 2 * m_numParticlesPerSide + 1) = 0;
+	if (toggleMoveAnchors)
+		moveAnchorsLineMotion(newState);
+	else
+	{
+		// top corner particles are stationary
+		// top right corner
+		newState.at(newState.size() - 1) = 0;
+		newState.at(newState.size() - 2) = 0;
+		// top left corner
+		newState.at(newState.size() - 2 * m_numParticlesPerSide) = 0;
+		newState.at(newState.size() - 2 * m_numParticlesPerSide + 1) = 0;
+	}
 	return newState;
 }
 
@@ -122,6 +126,23 @@ void ClothSystem::addSpringForces(std::vector<Vector3f> &f, const SpringRange &s
 		f.at(spring.p0) += sf;
 		f.at(spring.p1) -= sf;
 	}
+}
+
+void ClothSystem::moveAnchorsLineMotion(vector<Vector3f> &d)
+{
+	static int dir = 1;
+	const float speed = 0.5f;
+	const float endZ = 20;
+	// move top corners by some func.
+	float currentZ = getPosition(m_numParticles - 1).z();
+	if (currentZ > endZ)
+		dir = -1;
+	else if (currentZ < 0)
+		dir = 1;
+
+	d.at(d.size() - 2) = Vector3f(0, 0, speed * dir);
+	// top left corner
+	d.at(d.size() - 2 * m_numParticlesPerSide) = Vector3f(0, 0, speed * dir);
 }
 
 void ClothSystem::drawLines(const SpringRange &sr)
@@ -170,6 +191,9 @@ void ClothSystem::draw()
 	}
 	else // show mesh
 	{
+		glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+		glDisable(GL_CULL_FACE);
+		// glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 		for (int i = 0; i < m_numParticlesPerSide - 1; ++i)
 			for (int j = 0; j < m_numParticlesPerSide - 1; ++j)
 			{
@@ -195,5 +219,6 @@ void ClothSystem::draw()
 				glVertex3fv(v0);
 				glEnd();
 			}
+		glPopAttrib();
 	}
 }

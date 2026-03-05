@@ -36,12 +36,12 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
         // gravity
         f.push_back(Vector3f(0, -particleMass * g, 0)); // positively down maaannn.
         // drag
-        f.at(i) -= drag * getVelocity(i); // already a vector so we're good.
+        f.at(i) -= drag * getVelocity(i, state); // already a vector so we're good.
     }
     // passing over springs and filling in the forces.
     for (const auto &spring : springs)
     {
-        Vector3f sf = springForce(spring);
+        Vector3f sf = springForce(spring, state);
         f.at(spring.p0) += sf;
         f.at(spring.p1) -= sf;
     }
@@ -51,7 +51,7 @@ vector<Vector3f> PendulumSystem::evalF(vector<Vector3f> state)
 
     for (int i = 1; i < m_numParticles; ++i)
     {
-        newState.push_back(getVelocity(i));
+        newState.push_back(getVelocity(i, state));
         newState.push_back(f.at(i) / particleMass);
     }
     return newState;

@@ -26,7 +26,7 @@ Vector3f ParticleSpringSystem::springForce(Spring s)
 	Vector3f p0 = getPosition(s.p0);
 	Vector3f p1 = getPosition(s.p1);
 	Vector3f d = p1 - p0;
-	return s.k * (d.abs() - s.r) * d / (d.abs());
+	return s.k * (d.abs() - s.r) * d.normalized();
 }
 
 // render the system (ie draw the particles)

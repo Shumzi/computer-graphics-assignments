@@ -23,14 +23,13 @@ namespace
 
     ClothSystem *system;
     TimeStepper *timeStepper;
-    float stepsize = 0.03f;
-
+    float stepsize = 0.2f;
     // initialize your particle systems
     void initSystem(int argc, char *argv[])
     {
         // seed the random number generator with the current time
         srand(time(NULL));
-        system = new ClothSystem(15);
+        system = new ClothSystem(3);
         // system = new ParticleSpringSystem(5);
         // system.setBasicSprings();
         if (argc > 1) // timeStepper type supplied.
@@ -55,8 +54,10 @@ namespace
                 throw invalid_argument("can only choose e - forwardeuler, t - trapzoidal, or r - rk4.");
         } // else + default - rk4.
         else
+        {
             cout << "using RK4" << endl;
             timeStepper = new RK4();
+        }
         if (argc > 2) // stepsize supplied.
             stepsize = atof(argv[2]);
     }
@@ -131,10 +132,39 @@ namespace
         }
         case 'f':
         {
-
+            system->toggleFlex = !system->toggleFlex;
+            break;
         }
         case 't':
+        {
+            system->toggleStructure = !system->toggleStructure;
+            break;
+        }
         case 'r':
+        {
+            system->toggleShear = !system->toggleShear;
+            break;
+        }
+        case 'w':
+        {
+            // toggle wireframe.
+            system->showWireframe = !system->showWireframe;
+            break;
+        }
+        case 'a':
+        {
+            int numParticlesPerSide = system->m_numParticlesPerSide;
+            delete system;
+            system = new ClothSystem(numParticlesPerSide+1);
+            break;
+        }
+        case 'b':
+        {
+            int numParticlesPerSide = system->m_numParticlesPerSide;
+            delete system;
+            system = new ClothSystem(numParticlesPerSide-1);
+            break;
+        }
         default:
             cout << "Unhandled key press " << key << "." << endl;
         }

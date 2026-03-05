@@ -14,16 +14,16 @@ public:
 	ParticleSpringSystem(int numParticles);
 	ParticleSpringSystem();
 	virtual void setupBasicSprings() = 0;
-	void draw();
+	virtual void draw();
 
 protected:
 	Vector3f getPosition(int particleIdx);
 	Vector3f getVelocity(int particleIdx);
 	Vector3f springForce(Spring s);
 	vector<Spring> springs;
-	float drag = 1.1;
-	float g = 0.4;
-	float particleMass = 2.0f; // kg, assume constant mass?
+	float drag = 0.5f;
+	float g = 1.0f;
+	float particleMass = .1f; // kg, assume constant mass?
 };
 
 #endif

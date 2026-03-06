@@ -1,0 +1,33 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build-debug",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "CFLAGS=-g -Wall -Wextra"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"],
+            "detail": "Build with debug symbols"
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "make",
+            "args": ["clean"],
+            "problemMatcher": []
+        },
+        {
+            "label": "clean-and-build-debug",
+            "dependsOn": ["clean", "build-debug"],
+            "dependsOrder": "sequence",
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}

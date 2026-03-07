@@ -64,6 +64,7 @@ void parseArgs(int argc, char *argv[], RenderSettings &rs)
 
   for (int argNum = 1; argNum < argc; ++argNum)
   {
+    assert(argv[argNum][0] == '-' && "values must be preceeded by a flag arg (-input, -size, etc.)");
     if (!strcmp(argv[argNum], "-input"))
     {
       argNum++;
@@ -95,5 +96,7 @@ void parseArgs(int argc, char *argv[], RenderSettings &rs)
       cout << "height " << height << endl;
       cout << "filename " << rs.depthFilename << endl;
     }
+    else
+      throw invalid_argument(string("unsupported flag: ") + argv[argNum]);
   }
 }

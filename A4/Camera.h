@@ -38,7 +38,7 @@ public:
 		aspectRatio = 1.f;
 		w = direction;
 		u = Vector3f::cross(w, up);
-		v = Vector3f::cross(w, u);
+		v = Vector3f::cross(u, w);
 		float d = 1 / tan(angle / 2);
 		imgCenter = center + direction * d;
 	}

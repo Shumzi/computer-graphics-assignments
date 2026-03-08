@@ -87,7 +87,7 @@ void renderImage(Group *g, Vector2f &imgDim, Camera *cam, Image *img, bool useDe
         if (useDepth)
         {
           float depth = clampedDepth(h.getT() * r.getDirection().abs(), depthMin, depthMax);
-          img->SetPixel(i, j, Vector3f(depth) * h.getMaterial()->getDiffuseColor());
+          img->SetPixel(i, j, Vector3f(depth));
         }
         else
           img->SetPixel(i, j, h.getMaterial()->getDiffuseColor());
@@ -100,13 +100,16 @@ void renderImage(Group *g, Vector2f &imgDim, Camera *cam, Image *img, bool useDe
   }
 }
 
+/**
+ * @brief turns out the closer you are the brighter (that's what the soln did so i did too).
+ */
 float clampedDepth(float depthInput, float depthMin, float depthMax)
 {
   if (depthInput < depthMin)
-    return 0;
-  else if (depthInput > depthMax)
     return 1;
-  return (depthInput - depthMin) / (depthMax - depthMin);
+  else if (depthInput > depthMax)
+    return 0;
+  return (depthMax - depthInput) / (depthMax - depthMin);
 }
 
 void parseArgs(int argc, char *argv[], RenderSettings &rs)

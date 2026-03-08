@@ -1,48 +1,59 @@
 #ifndef GROUP_H
 #define GROUP_H
 
-
 #include "Object3D.h"
 #include "Ray.h"
 #include "Hit.h"
 #include <iostream>
 
-using  namespace std;
+using namespace std;
 
-///TODO: 
-///Implement Group
-///Add data structure to store a list of Object* 
-class Group:public Object3D
+/// TODO:
+/// Implement Group
+/// Add data structure to store a list of Object*
+class Group : public Object3D
 {
 public:
-
-  Group(){
-
-  }
-	
-  Group( int num_objects ){
-
+  Group()
+  {
   }
 
-  ~Group(){
-   
+  Group(int num_objects) : numObjects(num_objects)
+  {
+    objects = new Object3D *[num_objects];
   }
 
-  virtual bool intersect( const Ray& r , Hit& h , float tmin ) {
-		
-   }
-	
-  void addObject( int index , Object3D* obj ){
-
+  ~Group()
+  {
+    for (int i = 0; i < numObjects; ++i)
+    {
+      delete objects[i];
+    }
+    delete objects;
   }
 
-  int getGroupSize(){ 
-  
+  virtual bool intersect(const Ray &r, Hit &h, float tmin)
+  {
+    bool modified = false;
+    for (int i = 0; i < numObjects; ++i)
+      modified |= objects[i]->intersect(r, h, tmin);
+    return modified;
   }
 
- private:
+  void addObject(int index, Object3D *obj)
+  {
+    // note this doesn't handle existing object overwrite... will leak oi vei.
+    objects[index] = obj;
+  }
 
+  int getGroupSize()
+  {
+    return numObjects;
+  }
+
+private:
+  Object3D **objects;
+  int numObjects;
 };
 
 #endif
-	

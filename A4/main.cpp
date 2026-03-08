@@ -26,6 +26,8 @@ struct RenderSettings
 };
 void parseArgs(int argc, char *argv[], RenderSettings &rs);
 
+void renderImage(Group *g, Vector2f &imgDim, Camera *cam, Image *img, bool useDepth = false);
+
 int main(int argc, char *argv[])
 {
   // Fill in your implementation here.
@@ -36,16 +38,27 @@ int main(int argc, char *argv[])
   // name of the executable (in our case, "a4").
   RenderSettings rs;
   parseArgs(argc, argv, rs);
-  // First, parse the scene using SceneParser.
-  Vector3f pixelColor(1.0f, 0, 0);
-  rs.img->SetPixel(rs.img->Width() / 2, rs.img->Height() / 2, pixelColor);
+  Camera *cam = rs.sp->getCamera();
+  // TODO: adjust aspect ratio if needed for PerspectiveCamera.
+  Vector2f imgDim(rs.img->Width(), rs.img->Height());
+  renderImage(rs.sp->getGroup(), imgDim, cam, rs.img);
   rs.img->SaveImage(rs.outputFilename);
   if (rs.useDepth)
   {
-    Vector3f pixelColorDepth(0, 1.0f, 0);
-    rs.imgDepth->SetPixel(rs.imgDepth->Width() / 2, rs.imgDepth->Height() / 2, pixelColorDepth);
+    Vector2f imgDimDepth(rs.imgDepth->Width(), rs.imgDepth->Height());
+    renderImage(rs.sp->getGroup(), imgDimDepth, cam, rs.imgDepth, true);
     rs.imgDepth->SaveImage(rs.depthFilename);
   }
+  // First, parse the scene using SceneParser.
+  // Vector3f pixelColor(1.0f, 0, 0);
+  // rs.img->SetPixel(rs.img->Width() / 2, rs.img->Height() / 2, pixelColor);
+  // rs.img->SaveImage(rs.outputFilename);
+  // if (rs.useDepth)
+  // {
+  //   Vector3f pixelColorDepth(0, 1.0f, 0);
+  //   rs.imgDepth->SetPixel(rs.imgDepth->Width() / 2, rs.imgDepth->Height() / 2, pixelColorDepth);
+  //   rs.imgDepth->SaveImage(rs.depthFilename);
+  // }
 
   // Then loop over each pixel in the image, shooting a ray
   // through that pixel and finding its intersection with
@@ -53,6 +66,46 @@ int main(int argc, char *argv[])
   // pixel in your output image.
 
   return 0;
+}
+
+void renderImage(Group *g, Vector2f &imgDim, Camera *cam, Image *img, bool useDepth)
+{
+  // Group *g = rs.sp->getGroup();
+  Vector2f imgCtr = imgDim / 2;
+  for (int i = 0; i < imgDim.x(); ++i)
+  {
+    for (int j = 0; j < imgDim.y(); ++j)
+    {
+      // normalizing from -1 to 1.
+      Vector2f point(2 * (i - imgCtr.x()) / imgDim.x(), 2 * (j - imgCtr.y()) / imgDim.y());
+      Ray r = cam->generateRay(point);
+      Hit h;
+      bool intersected = g->intersect(r, h, cam->getTMin());
+      if (intersected)
+      {
+        if (useDepth)
+        {
+          float depth = clampedDepth(h.getT() * r.getDirection().abs(), 0, 20);
+          img->SetPixel(i, j, Vector3f(depth));
+        }
+        else
+          img->SetPixel(i, j, Vector3f(1.f, 0, 0));
+      }
+      else
+      {
+        img->SetPixel(i, j, Vector3f(0, 0, 0));
+      }
+    }
+  }
+}
+
+float clampedDepth(float depthInput, float depthMin, float depthMax)
+{
+  if (depthInput < depthMin)
+    return depthMin;
+  else if (depthInput > depthMax)
+    return depthMax;
+  return depthInput;
 }
 
 void parseArgs(int argc, char *argv[], RenderSettings &rs)

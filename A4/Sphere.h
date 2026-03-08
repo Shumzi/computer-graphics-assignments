@@ -17,13 +17,13 @@ public:
 		// unit ball at the center
 	}
 
-	Sphere(Vector3f c, float r, Material *material) : center(c), radius(r), Object3D(material){};
+	Sphere(Vector3f center, float radius, Material *material) : Object3D(material), center(center), radius(radius) {};
 
 	~Sphere() {}
 
 	/**
-	 * @brief intersect sphere w ray.
-	 * @details we don't assume Rd is unit length, so we'll do the who shenanigan.
+	 * @brief intersect sphere w ray. return true if the Hit was updated (i.e. intersected && closer)
+	 * @details we don't assume Rd is unit length, so we'll do the whole shenanigan.
 	 */
 	virtual bool intersect(const Ray &r, Hit &h, float tmin);
 

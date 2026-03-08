@@ -9,7 +9,7 @@ bool Sphere::intersect(const Ray &r, Hit &h, float tmin)
     // check discriminant
     float disc = b * b - 4 * a * c;
     float t;
-    float curT = h.getT();
+
     if (disc < 0)
         return false;
     else if (disc == 0)
@@ -29,7 +29,9 @@ bool Sphere::intersect(const Ray &r, Hit &h, float tmin)
     {
         // need to test this.
         h.set(t, material, normalAt(r.getOrigin() + t * r.getDirection()));
+        return true;
     }
+    return false;
 }
 
 Vector3f Sphere::normalAt(Vector3f p)

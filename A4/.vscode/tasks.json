@@ -23,6 +23,18 @@
             "problemMatcher": []
         },
         {
+            "label": "build-test-debug",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "a4_test",
+                "CFLAGS=-g -Wall -Wextra"
+            ],
+            "group": "build",
+            "problemMatcher": ["$gcc"],
+            "detail": "Build test binary with debug symbols"
+        },
+        {
             "label": "clean-and-build-debug",
             "dependsOn": ["clean", "build-debug"],
             "dependsOrder": "sequence",

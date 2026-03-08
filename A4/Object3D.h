@@ -12,20 +12,22 @@ public:
 	{
 		material = NULL;
 	}
-	virtual ~Object3D(){}
+	virtual ~Object3D() {}
 
-	Object3D( Material* material){
-	this->material = material ; 
+	Object3D(Material *material)
+	{
+		this->material = material;
 	}
-	
-	virtual bool intersect( const Ray& r , Hit& h, float tmin) = 0;
 
+	virtual bool intersect(const Ray &r, Hit &h, float tmin) = 0;
 
-	char* type;
+	virtual const char* getType()
+	{
+		return "OBJECT";
+	}
+
 protected:
-
-	Material* material;
+	Material *material;
 };
 
 #endif
-

@@ -3,9 +3,12 @@
 bool Sphere::intersect(const Ray &r, Hit &h, float tmin)
 {
     // at^2 + bt + c = 0, see notes in notion.
-    float a = Vector3f::dot(r.getDirection(), r.getDirection());
-    float b = 2 * Vector3f::dot(r.getDirection(), r.getOrigin());
-    float c = Vector3f::dot(r.getOrigin(), r.getOrigin()) - (radius * radius);
+    // TODO: remove hacky sphere shift when implementing actual transformations.
+    Vector3f r0ShiftToSphere = r.getOrigin() - center;
+    Vector3f rdShiftToSphere = r.getDirection();
+    float a = Vector3f::dot(rdShiftToSphere, rdShiftToSphere);
+    float b = 2 * Vector3f::dot(rdShiftToSphere, r0ShiftToSphere);
+    float c = Vector3f::dot(r0ShiftToSphere, r0ShiftToSphere) - (radius * radius);
     // check discriminant
     float disc = b * b - 4 * a * c;
     float t;

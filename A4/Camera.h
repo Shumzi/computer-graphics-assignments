@@ -54,7 +54,7 @@ public:
 	 */
 	virtual Ray generateRay(const Vector2f &point)
 	{
-		Vector3f rd(imgCenter + point.y() * u + point.x() * aspectRatio * v);
+		Vector3f rd(imgCenter - center + point.y() * u + point.x() * aspectRatio * v);
 		rd.normalize();
 		return Ray(center, rd);
 	}

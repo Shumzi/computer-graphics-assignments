@@ -17,7 +17,7 @@ public:
 		// unit ball at the center
 	}
 
-	Sphere(Vector3f center, float radius, Material *material) : Object3D(material), center(center), radius(radius) {};
+	Sphere(Vector3f center, float radius, Material *material) : Object3D(material), center(center), radius(radius){}
 
 	~Sphere() {}
 
@@ -26,6 +26,11 @@ public:
 	 * @details we don't assume Rd is unit length, so we'll do the whole shenanigan.
 	 */
 	virtual bool intersect(const Ray &r, Hit &h, float tmin);
+	
+	const char* getType()
+	{
+		return "SPHERE";
+	}
 
 protected:
 	Vector3f center;

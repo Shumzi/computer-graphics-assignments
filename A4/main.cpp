@@ -14,7 +14,8 @@ using namespace std;
 
 float clampedDepth(float depthInput, float depthMin, float depthMax);
 #include "bitmap_image.hpp"
-
+float depthMax = 12.f;
+float depthMin = 8.f;
 struct RenderSettings
 {
   SceneParser *sp;
@@ -81,15 +82,15 @@ void renderImage(Group *g, Vector2f &imgDim, Camera *cam, Image *img, bool useDe
       Ray r = cam->generateRay(point);
       Hit h;
       bool intersected = g->intersect(r, h, cam->getTMin());
-      if (intersected)
+      if (intersected && h.getT() < 20)
       {
         if (useDepth)
         {
-          float depth = clampedDepth(h.getT() * r.getDirection().abs(), 0, 20);
-          img->SetPixel(i, j, Vector3f(depth));
+          float depth = clampedDepth(h.getT() * r.getDirection().abs(), depthMin, depthMax);
+          img->SetPixel(i, j, Vector3f(depth) * h.getMaterial()->getDiffuseColor());
         }
         else
-          img->SetPixel(i, j, Vector3f(1.f, 0, 0));
+          img->SetPixel(i, j, h.getMaterial()->getDiffuseColor());
       }
       else
       {
@@ -102,10 +103,10 @@ void renderImage(Group *g, Vector2f &imgDim, Camera *cam, Image *img, bool useDe
 float clampedDepth(float depthInput, float depthMin, float depthMax)
 {
   if (depthInput < depthMin)
-    return depthMin;
+    return 0;
   else if (depthInput > depthMax)
-    return depthMax;
-  return depthInput;
+    return 1;
+  return (depthInput - depthMin) / (depthMax - depthMin);
 }
 
 void parseArgs(int argc, char *argv[], RenderSettings &rs)

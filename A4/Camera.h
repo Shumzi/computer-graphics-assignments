@@ -54,6 +54,7 @@ public:
 	 */
 	virtual Ray generateRay(const Vector2f &point)
 	{
+		// ray goes from center to imgcenter + relevant offset.
 		Vector3f rd(imgCenter - center + point.y() * u + point.x() * aspectRatio * v);
 		rd.normalize();
 		return Ray(center, rd);

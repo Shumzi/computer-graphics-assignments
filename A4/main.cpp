@@ -14,8 +14,8 @@ using namespace std;
 
 float clampedDepth(float depthInput, float depthMin, float depthMax);
 #include "bitmap_image.hpp"
-float depthMax = 12.f;
-float depthMin = 8.f;
+float depthMax = 15.f;
+float depthMin = 5.f;
 float lightEps = 1e-2f; // dist along object to start bounce light rays (so it doesn't intersect w itself).
 
 enum class ImageType

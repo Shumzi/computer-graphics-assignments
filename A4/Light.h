@@ -45,6 +45,7 @@ public:
         // direction of the directional light source
         dir = -direction;
         col = color;
+        distanceToLight = MAXFLOAT;
     }
 
 private:
@@ -78,6 +79,7 @@ public:
 		dir = (position-p);
 		dir = dir/dir.abs();
         col = color;
+        distanceToLight = dir.abs();
     }
 
 private:

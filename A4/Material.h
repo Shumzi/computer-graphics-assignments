@@ -7,46 +7,55 @@
 #include "Ray.h"
 #include "Hit.h"
 #include "texture.hpp"
-///TODO:
-///Implement Shade function that uses ambient, diffuse, specular and texture
+/// TODO:
+/// Implement Shade function that uses ambient, diffuse, specular and texture
 class Material
 {
 public:
-	
- Material( const Vector3f& d_color ,const Vector3f& s_color=Vector3f::ZERO, float s=0):
-  diffuseColor( d_color),specularColor(s_color), shininess(s)
+  Material(const Vector3f &d_color, const Vector3f &s_color = Vector3f::ZERO, float s = 0) : diffuseColor(d_color), specularColor(s_color), shininess(s)
   {
-        	
   }
 
   virtual ~Material()
-    {
-
-    }
-
-  virtual Vector3f getDiffuseColor() const 
-  { 
-    return  diffuseColor;
-  }
-    
-
-  Vector3f Shade( const Ray& ray, const Hit& hit,
-                  const Vector3f& dirToLight, const Vector3f& lightColor ) {
-
-    return Vector3f(1,1,1) ; 
-		
+  {
   }
 
-  void loadTexture(const char * filename){
+  virtual Vector3f getDiffuseColor() const
+  {
+    return diffuseColor;
+  }
+
+  /**
+   * @brief shade object by given light source & diffuse color.
+   * TODO: currently only implements diffuse.
+   */
+  Vector3f Shade(const Ray &ray, const Hit &hit,
+                 const Vector3f &dirToLight, const Vector3f &lightColor)
+  {
+    // Vector3f diffuse = shadeDiffuse(ray, hit, dirToLight, lightColor);
+    // diffuse lighting - dot(light, normal)*lightColor*diffuseColor
+    float dot = Vector3f::dot(dirToLight, hit.getNormal());
+    if (dot > 0)
+      return dot * lightColor * diffuseColor;
+    return Vector3f::ZERO;
+  }
+
+  // Vector3f shadeDiffuse(const Ray &ray, const Hit &hit,
+  //                       const Vector3f &dirToLight, const Vector3f &lightColor)
+  // {
+
+  // }
+
+  void loadTexture(const char *filename)
+  {
     t.load(filename);
   }
- protected:
+
+protected:
   Vector3f diffuseColor;
   Vector3f specularColor;
   float shininess;
   Texture t;
 };
-
-
 
 #endif // MATERIAL_H

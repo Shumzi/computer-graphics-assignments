@@ -89,7 +89,7 @@ Vector3f getShading(const Ray &r, const Hit &h, const SceneParser *&sp)
      * if the light isn't obstructed
      * (i.e. didn't intersect w other obj or obj was farther away)
      */
-    if (!intersected || h.getT() < distToLight)
+    if (!intersected || h.getT() > distToLight)
     {
       lightOnPoint = lightOnPoint + h.getMaterial()->Shade(r, h, dir, col);
     }
@@ -133,7 +133,7 @@ void renderImage(const SceneParser *sp, const RenderSetting &rs)
       }
       else
       {
-        img->SetPixel(i, j, Vector3f(0, 0, 0));
+        img->SetPixel(i, j, sp->getBackgroundColor());
       }
     }
   }

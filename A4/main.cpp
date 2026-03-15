@@ -105,30 +105,46 @@ void renderImage(const SceneParser *sp, const RenderSetting &rs)
   int height = img->Height();
   Camera *cam = sp->getCamera();
 
-  for (int i = 0; i < width; ++i)
+  for (int j = 0; j < height; ++j)
   {
-    for (int j = 0; j < height; ++j)
+    for (int i = 0; i < width; ++i)
     {
-      // normalizing from -1 to 1.
+      /** normalizing from -1 to 1.
+       * note that we start from the tb corner, i.e.
+       * (-1,1)--(1,1)
+       * (0,h)---(w,h)
+       * |          |
+       * |          |
+       * (0,0)---(w,0)
+       * (-1,-1)-(1,-1)
+       * so:
+       * i=0 -> -1 in xdir img
+       * j=0 -> -1 in ydir img
+       * */
+
       Vector2f point(2.f * (i - (width / 2.f)) / width,
                      2.f * (j - (height / 2.f)) / height);
       Ray r = cam->generateRay(point);
       Hit h;
       bool intersected = g->intersect(r, h, cam->getTMin());
+      float depth;
       if (intersected && h.getT() < 20)
       {
-        if (rs.imageType == ImageType::FULL)
+        switch (rs.imageType)
         {
+        case ImageType::FULL:
           img->SetPixel(i, j, getShading(r, h, sp));
-        }
-        else if (rs.imageType == ImageType::DEPTH)
-        {
-          float depth = clampedDepth(h.getT() * r.getDirection().abs(), depthMin, depthMax);
+          break;
+        case ImageType::DEPTH:
+          depth = clampedDepth(h.getT() * r.getDirection().abs(), depthMin, depthMax);
           img->SetPixel(i, j, Vector3f(depth));
-        }
-        else if (rs.imageType == ImageType::NORMAL)
-        {
+          break;
+        case ImageType::NORMAL:
           img->SetPixel(i, j, h.getNormal());
+          break;
+        default:
+          cout << "no image type, did nothing to img." << endl;
+          break;
         }
       }
       else
@@ -172,10 +188,8 @@ void parseArgs(int argc, char *argv[], SceneParser *&sp, vector<RenderSetting> &
     }
     else if (!strcmp(argv[argNum], "-size"))
     {
-      int w = atoi(argv[++argNum]);
-      int h = atoi(argv[++argNum]);
-      width = w;
-      height = h;
+      width = atoi(argv[++argNum]);
+      height = atoi(argv[++argNum]);
       cout << "img width " << width << endl;
       cout << "img height " << height << endl;
     }

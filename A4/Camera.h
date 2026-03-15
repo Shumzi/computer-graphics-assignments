@@ -36,9 +36,9 @@ public:
 		this->direction = direction;
 		this->up = up;
 		aspectRatio = 1.f;
-		w = direction;
-		u = Vector3f::cross(w, up);
-		v = Vector3f::cross(u, w);
+		w = direction; // i.e. z
+		u = Vector3f::cross(w, up); // i.e. x
+		v = Vector3f::cross(u, w); // i.e. y
 		float d = 1 / tan(angle / 2);
 		imgCenter = center + direction * d;
 	}
@@ -55,7 +55,7 @@ public:
 	virtual Ray generateRay(const Vector2f &point)
 	{
 		// ray goes from center to imgcenter + relevant offset.
-		Vector3f rd(imgCenter - center + point.y() * u + point.x() * aspectRatio * v);
+		Vector3f rd(imgCenter - center + point.y() * v + point.x() * aspectRatio * u);
 		rd.normalize();
 		return Ray(center, rd);
 	}

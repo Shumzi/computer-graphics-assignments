@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/a4",
-            "args": ["-input","scene01_plane.txt","-size","2000","2000","-output","output01.bmp","-depth","depth01.bmp", "-normal","normal01.bmp"],
+            "args": ["-input","scene01_plane.txt","-size","200","200","-output","output01.bmp","-depth","depth01.bmp", "-normal","normal01.bmp"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

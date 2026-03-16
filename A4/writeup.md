@@ -9,3 +9,8 @@ had a bug where
 2. looked at a specific pixel in the cube that should have been good. turns out the problem was with how i recasted the ray to test for shades on the light. namely - that the dir is just the dir, no need to do dir-hitPoint from the illumination, don't know why i'd even do that.
 lesson learned - if the depth and normals seem ok, must be something else. so didn't have to waste time looking at the normal calculation etc (even though i found a bug that the triangle normals weren't normalized). also, the ray was suppose to be created only after we found the dir to the light obviously, how did it even work last time??? i used an uninitialized float dir variable?? 
 lesson learned - look at warnings!!! or don't compile if uninitialized param is used.
+
+bug - weird line in the middle of the render. 
+sol - didn't put >=0 for alpha/beta/gamma in the triangle. line of reasoning - was on a specific line so probably some boundary case.
+
+bug - black spots on a few parts of the square. probably too small of an eps? no. problem exists on depth & normal as well! so something more basic. missed the actual triangle point.

@@ -53,7 +53,7 @@ public:
 		float beta = betaNumerator / aDet;
 		float gamma = gammaNumerator / aDet;
 		float alpha = 1 - beta - gamma;
-		if (beta > 0 && gamma > 0 && alpha > 0) // then we're inside the triangle
+		if (beta >= 0 && gamma >= 0 && alpha >= 0) // then we're inside the triangle
 		{
 			if (hit.getT() > t && t > tmin) // then we actually should change the value
 			{

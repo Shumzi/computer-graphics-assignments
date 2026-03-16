@@ -57,7 +57,7 @@ public:
 		{
 			if (hit.getT() > t && t > tmin) // then we actually should change the value
 			{
-				hit.set(t, material, normals[0] * alpha + normals[1] * beta + normals[2] * gamma);
+				hit.set(t, material, (normals[0] * alpha + normals[1] * beta + normals[2] * gamma).normalized());
 				return true;
 			}
 			return false;

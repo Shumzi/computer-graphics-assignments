@@ -80,9 +80,9 @@ Vector3f getShading(const Ray &r, const Hit &h, const SceneParser *&sp)
     Vector3f dir, col;
     Light *light = sp->getLight(numLight);
     Vector3f hitPoint = r.pointAtParameter(h.getT());
-    Ray shadowRay(hitPoint, dir - hitPoint);
     Hit isShadowed;
     light->getIllumination(hitPoint, dir, col, distToLight);
+    Ray shadowRay(hitPoint, dir);
     bool intersected = g->intersect(shadowRay, isShadowed, lightEps);
     /**
      * assume dir is normalized i guess..

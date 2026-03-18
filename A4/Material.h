@@ -27,17 +27,24 @@ public:
 
   /**
    * @brief shade object by given light source & diffuse color.
-   * TODO: currently only implements diffuse.
+   * TODO: currently implements diffuse & phong shading.
    */
   Vector3f Shade(const Ray &ray, const Hit &hit,
                  const Vector3f &dirToLight, const Vector3f &lightColor)
   {
-    // Vector3f diffuse = shadeDiffuse(ray, hit, dirToLight, lightColor);
-    // diffuse lighting - dot(light, normal)*lightColor*diffuseColor
-    float dot = Vector3f::dot(dirToLight, hit.getNormal());
-    if (dot > 0)
-      return dot * lightColor * diffuseColor;
-    return Vector3f::ZERO;
+    Vector3f n = hit.getNormal();
+    Vector3f d = ray.getDirection();
+    // for phong shading. 
+    Vector3f reflectedRay = (d - 2 * (Vector3f::dot(d, n) * n)).normalized();
+    float diffuseDot = Vector3f::dot(dirToLight, n);
+    float phongDot = Vector3f::dot(reflectedRay, dirToLight);
+    Vector3f diffuseLight;
+    Vector3f phongLight;
+    if (diffuseDot > 0)
+      diffuseLight = diffuseDot * lightColor * diffuseColor;
+    if (phongDot > 0)
+      phongLight = pow(phongDot, shininess) * lightColor * specularColor;
+    return diffuseLight + phongLight;
   }
 
   // Vector3f shadeDiffuse(const Ray &ray, const Hit &hit,

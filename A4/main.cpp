@@ -14,10 +14,10 @@ using namespace std;
 
 float clampedDepth(float depthInput, float depthMin, float depthMax);
 #include "bitmap_image.hpp"
-float depthMax = 15.f;
-float depthMin = 5.f;
+float depthMax = 13.f;
+float depthMin = 8.f;
 float lightEps = 1e-2f; // dist along object to start bounce light rays (so it doesn't intersect w itself).
-
+float maxDistFromCamToRender = 100.f;
 enum class ImageType
 {
   FULL,
@@ -126,9 +126,10 @@ void renderImage(const SceneParser *sp, const RenderSetting &rs)
                      2.f * (j - (height / 2.f)) / height);
       Ray r = cam->generateRay(point);
       Hit h;
+
       bool intersected = g->intersect(r, h, cam->getTMin());
       float depth;
-      if (intersected && h.getT() < 20)
+      if (intersected && h.getT() < maxDistFromCamToRender)
       {
         switch (rs.imageType)
         {

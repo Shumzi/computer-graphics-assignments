@@ -34,24 +34,26 @@ public:
   {
     Vector3f n = hit.getNormal();
     Vector3f d = ray.getDirection();
-    // for phong shading. 
-    Vector3f reflectedRay = (d - 2 * (Vector3f::dot(d, n) * n)).normalized();
-    float diffuseDot = Vector3f::dot(dirToLight, n);
-    float phongDot = Vector3f::dot(reflectedRay, dirToLight);
     Vector3f diffuseLight;
+    if (t.valid())
+    {
+      diffuseLight = t(hit.texCoord.x(),hit.texCoord.y());
+    }
+    else // use diffuse clr.
+    {
+      
+      float diffuseDot = Vector3f::dot(dirToLight, n);
+      if (diffuseDot > 0)
+        diffuseLight = diffuseDot * lightColor * diffuseColor;
+    }
+    // for phong shading.
+    Vector3f reflectedRay = (d - 2 * (Vector3f::dot(d, n) * n)).normalized();
+    float phongDot = Vector3f::dot(reflectedRay, dirToLight);
     Vector3f phongLight;
-    if (diffuseDot > 0)
-      diffuseLight = diffuseDot * lightColor * diffuseColor;
     if (phongDot > 0)
       phongLight = pow(phongDot, shininess) * lightColor * specularColor;
     return diffuseLight + phongLight;
   }
-
-  // Vector3f shadeDiffuse(const Ray &ray, const Hit &hit,
-  //                       const Vector3f &dirToLight, const Vector3f &lightColor)
-  // {
-
-  // }
 
   void loadTexture(const char *filename)
   {

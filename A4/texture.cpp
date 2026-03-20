@@ -22,6 +22,7 @@ bool Texture::valid()
 ///@param x assumed to be between 0 and 1
 Vector3f
 Texture::operator()(float x, float y)
+
 {
 	Vector3f color;
     int ix,iy;

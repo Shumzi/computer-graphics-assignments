@@ -58,6 +58,10 @@ public:
 			if (hit.getT() > t && t > tmin) // then we actually should change the value
 			{
 				hit.set(t, material, (normals[0] * alpha + normals[1] * beta + normals[2] * gamma).normalized());
+				if (hasTex)
+				{
+					hit.setTexCoord(texCoords[0] * alpha + texCoords[1] * beta + texCoords[2] * gamma);
+				}
 				return true;
 			}
 			return false;
@@ -65,9 +69,10 @@ public:
 		return false;
 	}
 	bool hasTex;
-	Vector3f normals[3]; // relevant only for meshes, in the regular case its just
+	// in meshes we'll update the normal according to the avg of the trigs each vert is connected to .
+	Vector3f normals[3];
 	Vector3f a, b, c;
-	Vector2f texCoords[3];
+	Vector2f texCoords[3]; // each point in the abc corresponds to a point on the 2d texture img.
 
 protected:
 };

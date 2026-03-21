@@ -35,17 +35,14 @@ public:
     Vector3f n = hit.getNormal();
     Vector3f d = ray.getDirection();
     Vector3f diffuseLight;
+    Vector3f kd;
     if (t.valid())
-    {
-      diffuseLight = t(hit.texCoord.x(),hit.texCoord.y());
-    }
+      kd = t(hit.texCoord.x(), hit.texCoord.y());
     else // use diffuse clr.
-    {
-      
-      float diffuseDot = Vector3f::dot(dirToLight, n);
-      if (diffuseDot > 0)
-        diffuseLight = diffuseDot * lightColor * diffuseColor;
-    }
+      kd = diffuseColor;
+    float diffuseDot = Vector3f::dot(dirToLight, n);
+    if (diffuseDot > 0)
+      diffuseLight = diffuseDot * lightColor * kd;
     // for phong shading.
     Vector3f reflectedRay = (d - 2 * (Vector3f::dot(d, n) * n)).normalized();
     float phongDot = Vector3f::dot(reflectedRay, dirToLight);

@@ -14,7 +14,7 @@ using namespace std;
 
 float clampedDepth(float depthInput, float depthMin, float depthMax);
 #include "bitmap_image.hpp"
-float depthMax = 20.f;
+float depthMax = 10.f;
 float depthMin = 0.f;
 float lightEps = 1e-2f; // dist along object to start bounce light rays (so it doesn't intersect w itself).
 float maxDistFromCamToRender = 100.f;
